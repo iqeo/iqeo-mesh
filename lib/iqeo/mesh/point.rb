@@ -1,3 +1,5 @@
+module Iqeo
+module Mesh
 
 class Point
 
@@ -28,3 +30,5 @@ class Point
 
 end
 
+end
+end

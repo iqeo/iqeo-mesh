@@ -1,3 +1,5 @@
+module Iqeo
+module Mesh
 
 class DirectedEdge
 
@@ -56,4 +58,7 @@ class DirectedEdge
     ! check.values.include? false
   end
 
+end
+
+end
 end

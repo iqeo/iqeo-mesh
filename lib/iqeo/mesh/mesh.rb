@@ -1,23 +1,6 @@
+module Iqeo
+module Mesh
 
-require_relative 'point_utilities'
-require_relative 'point'
-require_relative 'edge'
-require_relative 'directed_edge'
-require_relative 'polygon'
-
-class Voronoi
-
-  # todo: Voronoi class is graph-like ? look for commonalities with Mesh to extract into a superclass
-
-  attr_reader :cells, :edges, :points
-
-  def initialize
-    @cells = Set.new
-    @edges = Set.new
-    @points = Set.new
-  end
-
-end
 
 class Mesh
 
@@ -46,7 +29,7 @@ class Mesh
     if point == new_point
       notify :point_added, point
       update point
-      voronoi point
+      voronoi point if @options[:voronoi]
     end
     point
   end
@@ -224,4 +207,7 @@ class Mesh
     ! check_mesh.values.include? false
   end
 
+end
+
+end
 end

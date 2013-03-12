@@ -1,3 +1,5 @@
+module Iqeo
+module Mesh
 
 class Polygon
 
@@ -168,4 +170,7 @@ class Polygon
     insert_directed_edges directed_edge_after_break, directed_edges_to_insert
   end
 
+end
+
+end
 end

@@ -1,9 +1,8 @@
 #! /usr/bin/env ruby
 
-require 'awesome_print'
+require 'tk' # RVM needs: "rvm install ruby-1.9.3 --disable-binary" to force compile from source for TCL/TK support
 require 'ostruct'
-require 'tk'
-require_relative 'mesh'
+require_relative '../lib/iqeo/mesh'
 
 CHECK_MESH = true
 CHECK_DELAUNAY = true
@@ -361,10 +360,10 @@ def options tag, opts={}
   opts.merge( :tags => tag.to_s, :state => ( @show[tag] ? :normal : :hidden ) )
 end
 
-@mesh = Mesh.new WIDTH, HEIGHT,
+@mesh = Iqeo::Mesh::Mesh.new WIDTH, HEIGHT,
                  listener: lambda { |cmd,*args| mesh_listener cmd, *args },
                  triangulation: :delaunay_bowyerwatson,
-                 voronoi: true
+                 voronoi: false
 @shapes = {}
 @show = { delaunay: true, circle: true, point: true, voronoi: false, center: false }
 @hover = true

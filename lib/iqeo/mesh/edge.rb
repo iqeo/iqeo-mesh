@@ -1,3 +1,5 @@
+module Iqeo
+module Mesh
 
 class Edge
 
@@ -43,4 +45,7 @@ class Edge
     ! check.values.include? false
   end
 
+end
+
+end
 end
