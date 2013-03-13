@@ -1,12 +1,11 @@
 module Iqeo
 module Mesh
 
-
 class Mesh
 
   require 'set'
 
-  attr_reader :points, :edges, :triangles, :hull
+  attr_reader :points, :edges, :triangles, :hull, :width, :height, :options
 
   def initialize width, height, options = {}
     @width = width

@@ -13,7 +13,7 @@ module PointUtilities
     case clockwise? [ start ] + others
     when true  then return [ start, others[0], others[1] ]
     when false then return [ start, others[1], others[0] ]
-    else return points  # points are collinear ?
+    else return points  # points are collinear
     end
   end
 
@@ -47,7 +47,7 @@ module PointUtilities
       when thing.respond_to?( :points )
         points.merge thing.points
       else
-        raise 'Not a point thing'
+        raise 'Not a pointy thing'
       end
     end
     points
