@@ -10,8 +10,14 @@ class DirectedEdge
 
   def initialize edge, start = nil
     @edge = edge
-    @start = start ? start : @edge.points[0]
-    @finish = @edge.points.detect { |p| p != @start }
+    if start
+      raise 'Start point not on edge' unless @edge.points.include? start
+      @start = start
+      @finish = @edge.points.detect { |p| p != @start }
+    else
+      @start = @edge.points[0]
+      @finish = @edge.points[1]
+    end
   end
 
   def points
