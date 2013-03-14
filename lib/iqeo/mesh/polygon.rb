@@ -8,9 +8,10 @@ class Polygon
   attr_reader :points, :directed_edges, :radius2, :center
 
   def initialize mesh, pointy_things
-    @mesh = mesh
     # fix: initializes for 3 points only due to clockwise, extend to n points
+    @mesh = mesh
     @points = clockwise unique_points pointy_things
+    raise 'points are collinear' if @points.nil?
     calculate_circumcircle
     @directed_edges = directed_edges_for @points
     update_edges_polygons edges

@@ -1,93 +1,99 @@
 require 'iqeo/mesh/point_utilities'
+require 'iqeo/mesh/point'
+require 'iqeo/mesh/edge'
 
 describe 'PointUtilities' do
 
   include Iqeo::Mesh::PointUtilities
 
-  # points in a triangle
-  P0 = Iqeo::Mesh::Point.new 20, 10
-  P1 = Iqeo::Mesh::Point.new 30, 20
-  P2 = Iqeo::Mesh::Point.new 10, 30
+  before :all do
 
-  # colinear points
-  P3 = Iqeo::Mesh::Point.new 50, 60
-  P4 = Iqeo::Mesh::Point.new 60, 70
-  P5 = Iqeo::Mesh::Point.new 70, 80
+    # points in a triangle
+    @p0 = Iqeo::Mesh::Point.new 20, 10
+    @p1 = Iqeo::Mesh::Point.new 30, 20
+    @p2 = Iqeo::Mesh::Point.new 10, 30
 
-  TRIANGLE_POINT_COMBOS = {
-    [ P0, P1, P2 ] => { clockwise: true,  cross_product:  300 },
-    [ P0, P2, P1 ] => { clockwise: false, cross_product: -300 },
-    [ P1, P0, P2 ] => { clockwise: false, cross_product: -300 },
-    [ P1, P2, P0 ] => { clockwise: true,  cross_product:  300 },
-    [ P2, P0, P1 ] => { clockwise: true,  cross_product:  300 },
-    [ P2, P1, P0 ] => { clockwise: false, cross_product: -300 }
-  }
+    # colinear points
+    @p3 = Iqeo::Mesh::Point.new 50, 60
+    @p4 = Iqeo::Mesh::Point.new 60, 70
+    @p5 = Iqeo::Mesh::Point.new 70, 80
 
-  COLINEAR_POINT_COMBOS = {
-    [ P3, P4, P5 ] => { clockwise: nil,   cross_product:    0 },
-    [ P3, P5, P4 ] => { clockwise: nil,   cross_product:    0 },
-    [ P4, P3, P5 ] => { clockwise: nil,   cross_product:    0 },
-    [ P4, P5, P3 ] => { clockwise: nil,   cross_product:    0 },
-    [ P5, P3, P4 ] => { clockwise: nil,   cross_product:    0 },
-    [ P5, P4, P3 ] => { clockwise: nil,   cross_product:    0 }
-  }
+    @triangle_point_combos = {
+      [ @p0, @p1, @p2 ] => { clockwise: true,  cross_product:  300 },
+      [ @p0, @p2, @p1 ] => { clockwise: false, cross_product: -300 },
+      [ @p1, @p0, @p2 ] => { clockwise: false, cross_product: -300 },
+      [ @p1, @p2, @p0 ] => { clockwise: true,  cross_product:  300 },
+      [ @p2, @p0, @p1 ] => { clockwise: true,  cross_product:  300 },
+      [ @p2, @p1, @p0 ] => { clockwise: false, cross_product: -300 }
+    }
 
-  ALL_POINT_COMBOS = TRIANGLE_POINT_COMBOS.merge COLINEAR_POINT_COMBOS
+    @colinear_point_combos = {
+      [ @p3, @p4, @p5 ] => { clockwise: nil,   cross_product:    0 },
+      [ @p3, @p5, @p4 ] => { clockwise: nil,   cross_product:    0 },
+      [ @p4, @p3, @p5 ] => { clockwise: nil,   cross_product:    0 },
+      [ @p4, @p5, @p3 ] => { clockwise: nil,   cross_product:    0 },
+      [ @p5, @p3, @p4 ] => { clockwise: nil,   cross_product:    0 },
+      [ @p5, @p4, @p3 ] => { clockwise: nil,   cross_product:    0 }
+    }
 
-  UNIQUE_POINTS = [ P0, P1, P2, P3, P4, P5 ]
+    @all_point_combos = @triangle_point_combos.merge @colinear_point_combos
+
+    @unique_points = [ @p0, @p1, @p2, @p3, @p4, @p5 ]
+
+  end
 
   it 'calculates the cross product of 3 points' do
-    ALL_POINT_COMBOS.each do |points,answer|
+    @all_point_combos.each do |points,answer|
       cross_product( points ).should eq answer[:cross_product]
     end
   end
 
   it 'tests 3 points are ordered clockwise' do
-    ALL_POINT_COMBOS.each do |points,answer|
+    @all_point_combos.each do |points,answer|
       clockwise?( points ).should eq answer[:clockwise]
     end
   end
 
   it 'tests 3 points are ordered anti-clockwise' do
-    ALL_POINT_COMBOS.each do |points,answer|
+    @all_point_combos.each do |points,answer|
       anticlockwise?( points ).should eq ( answer[:clockwise].nil? ? nil : ! answer[:clockwise] )
     end
   end
 
   it 'orders 3 points clockwise' do
-    points_clockwise_from_topleft = [ P0, P1, P2 ]
-    TRIANGLE_POINT_COMBOS.keys.each do |points|
+    points_clockwise_from_topleft = [ @p0, @p1, @p2 ]
+    @triangle_point_combos.keys.each do |points|
       clockwise( points ).should eq points_clockwise_from_topleft
     end
   end
 
   it 'does not reorder colinear points clockwise' do
-    COLINEAR_POINT_COMBOS.keys.each do |points|
-      clockwise( points ).should eq points
+    @colinear_point_combos.keys.each do |points|
+      clockwise( points ).should be_nil
     end
   end
 
   describe 'reduces collections of pointy things to a set of unique points' do
 
     it 'accepts a collection of points' do
-      unique = unique_points ALL_POINT_COMBOS.keys.flatten
+      unique = unique_points @all_point_combos.keys.flatten
       unique.should be_an_instance_of Set
-      unique.size.should eq UNIQUE_POINTS.size
-      UNIQUE_POINTS.each { |point| unique.should include point }
+      unique.size.should eq @unique_points.size
+      @unique_points.each { |point| unique.should include point }
     end
 
     it 'accepts a collection of edges' do
       edges = []
-      UNIQUE_POINTS.each do |start|
-        UNIQUE_POINTS.each do |finish|
+      @unique_points.each do |start|
+        @unique_points.each do |finish|
           edges << Iqeo::Mesh::Edge.new( start, finish ) unless start == finish
         end
       end
       edges.size.should eq 30
       unique = unique_points edges
       unique.should be_an_instance_of Set
-      unique.size.should eq UNIQUE_POINTS.size
-      UNIQUE_POINTS.each { |point| unique.should include point }
+      unique.size.should eq @unique_points.size
+      @unique_points.each { |point| unique.should include point }
     end
 
     it 'raises an exception for non-pointy things' do
