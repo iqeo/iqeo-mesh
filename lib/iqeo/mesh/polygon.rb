@@ -58,6 +58,7 @@ class Polygon
   end
 
   def directed_edges_visible_to_outside_point point
+    raise 'point is not outside' unless outside? point
     # returns [directed edges...] for outside point, [] for inside point
     # visible directed edges (v) are a single contiguous group (...vvv...) but may wrap around (vvv...vvv) the edge list
     # for (vvv...vvv) head and tail lists contain visible edges, tail + head = contiguous list of edges
