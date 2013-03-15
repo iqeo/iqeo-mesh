@@ -8,6 +8,9 @@ class Mesh
   attr_reader :points, :edges, :triangles, :hull, :width, :height, :options
 
   def initialize width, height, options = {}
+    # todo: handle with default or extend mesh as points are added ?
+    # todo: is width & height necessary to operation ? or is it just a handy way to keep track of the mesh size ?
+    raise 'width and height cannot be nil' if width.nil? || height.nil?
     @width = width
     @height = height
     @options = { listener: nil, triangulation: nil, container: :triangulated_box, voronoi: false }.merge! options

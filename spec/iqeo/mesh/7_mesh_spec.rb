@@ -16,6 +16,10 @@ describe 'Mesh' do
     mesh.hull.should             be_nil
   end
 
+  it 'raises exception on nil height & width' do
+    expect { Iqeo::Mesh::Mesh.new nil, nil }.to raise_error RuntimeError, 'width and height cannot be nil'
+  end
+
   it 'has default options' do
     mesh = nil
     expect { mesh = Iqeo::Mesh::Mesh.new WIDTH, HEIGHT }.to_not raise_error

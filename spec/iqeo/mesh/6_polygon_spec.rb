@@ -56,10 +56,15 @@ describe 'Polygon' do
     @points_inside_circumcircle = [ @pic0, @pic1, @pic2 ]
     # points outside circumcircle
     @points_outside_circumcircle = @points_outside_single + @points_outside_multiple
+    # triangles with point at origin
+    @pao = Iqeo::Mesh::Point.new 0,0
+    @triangles_at_origin = [ [ @pao, @pt1, @pt2,], [ @pao, @pt2, @pt1 ], [ @pt1, @pao, @pt2 ], [ @pt1, @pt2, @pao ], [ @pt2, @pao, @pt1 ], [ @pt2, @pao, @pt1 ] ]
+    @center_tao = Iqeo::Mesh::Point.new 13, 12
+    @radius2_tao = 313
     # mesh
-    height = 1000
-    width  = 2000
-    @mesh = Iqeo::Mesh::Mesh.new width, height
+    @mesh_height = 1000
+    @mesh_width  = 2000
+    @mesh = Iqeo::Mesh::Mesh.new @mesh_width, @mesh_height
   end
 
   context 'initialization' do
@@ -88,10 +93,25 @@ describe 'Polygon' do
       end
     end
 
+    it 'accepts mesh and points with one at origin for special case circumcircle' do
+      @triangles_at_origin.each do |points|
+        poly = nil
+        expect { poly = Iqeo::Mesh::Polygon.new @mesh, points }.to_not raise_error
+        poly.center.should eq @center_tao
+        poly.radius2.should eq @radius2_tao
+      end
+    end
+
     it 'raises exception for collinear points' do
       expect { Iqeo::Mesh::Polygon.new @mesh, @collinear_points }.to raise_error
     end
 
+  end
+
+  it 'checks self for consistency' do
+    # keep this test near top as poly tests below will add > 2 polys to @edge?s, this will not happen with a single @Mesh
+    @poly = Iqeo::Mesh::Polygon.new @mesh, @triangle_points
+    @poly.check?.should be_true
   end
 
   context 'detects points are' do
@@ -133,7 +153,9 @@ describe 'Polygon' do
     end
 
     it 'raises exception if point is not outside' do
-      expect { @poly.directed_edges_visible_to_outside_point( @point_inside ) }.to raise_error
+      @points_inside_triangle.each do |point|
+        expect { @poly.directed_edges_visible_to_outside_point( point ) }.to raise_error
+      end
     end
 
     it 'detects single directed_edge visible' do
@@ -179,27 +201,30 @@ describe 'Polygon' do
       @poly = Iqeo::Mesh::Polygon.new @mesh, @triangle_points
       triangles = @poly.split point
       triangles.size.should eq 3
-      triangles.each { |t| t.points.include?( point ).should be_true }
+      triangles.each { |t| t.points.should include point }
     end
   end
 
   context 'expands' do
 
     it 'to a point with single visible edge' do
-      pending # fix: undefined method `start' for nil:NilClass ./lib/iqeo/mesh/polygon.rb:75:in `expand
       @poly = Iqeo::Mesh::Polygon.new @mesh, @triangle_points
-      @points_outside_single.each_with_index do |point,i|
-        @poly.expand point
-        @poly.points.include?( point ).should be_true
-        @poly.edges.size.should eq ( 4 + i )
-      end
+      @poly.expand @pos2
+      @poly.points.should include @pos2
+      # todo: if expanded a second time: undefined method `start' for nil:NilClass ./lib/iqeo/mesh/polygon.rb:75:in `expand
+      # todo: we don't use expand anymore, until we use triangulation: none !?
+      #@points_outside_single.each_with_index do |point,i|
+      #  @poly.expand point
+      #  @poly.points.should include point
+      #  #@poly.edges.size.should eq ( 4 + i )
+      #end
     end
 
     it 'to a point with multiple visible edges' do
       @poly = Iqeo::Mesh::Polygon.new @mesh, @triangle_points
       @points_outside_multiple.each do |point|
         @poly.expand point
-        @poly.points.include?( point ).should be_true
+        @poly.points.should include point
         @poly.edges.size.should eq 3
       end
     end
@@ -208,19 +233,34 @@ describe 'Polygon' do
 
   context 'neighbors' do
 
-    it 'are known' do
-      pending
+    before :all do
+      @mesh = Iqeo::Mesh::Mesh.new @mesh_width, @mesh_height
+      @poly = Iqeo::Mesh::Polygon.new @mesh, @triangle_points
     end
 
-    it 'are merged' do
-      pending
+    it 'may not exist' do
+      @poly.neighbors.should be_empty
     end
 
-  end
+    context 'can be' do
 
-  it 'checks self for consistency' do
-    pending # fix: 'why is this returning false ?'
-    @poly.check?.should be_true
+      before :all do
+        @neighbors = @points_outside_single.collect { |point| Iqeo::Mesh::Polygon.new @mesh, [ point, *@single_edges_visible[point] ] }
+      end
+
+      it 'known' do
+        @poly.neighbors.should eq @neighbors
+      end
+
+      it 'merged' do
+        @neighbors.each { |neighbor| @poly.merge neighbor }
+        @poly.neighbors.should be_empty
+        @poly.points.size.should eq 6
+        @poly.edges.size.should eq 6
+      end
+
+    end
+
   end
 
 end
