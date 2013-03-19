@@ -13,7 +13,7 @@ class Mesh
     raise 'width and height cannot be nil' if width.nil? || height.nil?
     @width = width
     @height = height
-    @options = { listener: nil, triangulation: nil, container: :triangulated_box, voronoi: false }.merge! options
+    @options = { listener: nil, triangulation: false, container: :triangulated_box, voronoi: false }.merge! options
     @points = Set.new
     @edges = Set.new
     @triangles = Set.new
@@ -78,11 +78,11 @@ class Mesh
 
   def update point
     case @options[:triangulation]
-    when nil                    then triangulate_none point
-    when false                  then triangulate_none point
+    when false                  then triangulate_simple point
+    when :simple                then triangulate_simple point
     when :delaunay_bowyerwatson then triangulate_bowyerwatson point
     else
-      raise "Unknown triangulation: #@options[:triangulation]"
+      raise "Unknown triangulation: #{@options[:triangulation]}"
     end
   end
 
@@ -140,7 +140,7 @@ class Mesh
     [ hole, tested ]
   end
 
-  def triangulate_none point
+  def triangulate_simple point
     return if @points.size < 3   # just collect points
     if @points.size == 3  # first triangle & convex hull
       triangle = Polygon.new self, @points
