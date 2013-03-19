@@ -36,20 +36,6 @@ class Mesh
     point
   end
 
-  def voronoi point
-    # todo: this is a naive approach, can do something much more efficient within bowyerwatson
-    triangles = @triangles.select { |t| t.points.include? point }
-    # todo : order triangles by neighbor - not needed because Polygon.new will order points clockwise ?
-    #ordered = [ triangles.shift ]
-    #until triangles.empty?
-    #  triangles = triangles - ordered
-    #  triangles.each_with_object(ordered) { |t, ot| ot << t if t.neighbors.include? ot.last }
-    #end
-    # fix: Polygon.new will fail for > 3 points, extend it to work!
-    cell = Polygon.new @voronoi, triangles.collect(&:center)
-    @voronoi.cells << cell
-  end
-
   def triangle_at x, y
     triangle_containing Point.new( x, y )
   end
@@ -86,10 +72,64 @@ class Mesh
     end
   end
 
+  def triangulate_simple point
+    return if @points.size < 3   # just collect points
+    if @points.size == 3  # first triangle & convex hull
+      triangle = Polygon.new self, @points
+      @triangles.add triangle
+      #notify :triangle, triangle
+      @hull = Polygon.new self, @points
+      #notify :hull, @hull
+      return
+    end
+    # new point may be inside or outside existing convex hull
+    point_location = @hull.inside?( point ) ? :inside : :outside
+    case point_location
+    when :inside
+      # split triangle into 3 triangles around point
+      triangle = triangle_containing point
+      @triangles.delete triangle
+      #notify :delete_triangle, triangle
+      #notify :hull, @hull
+      new_triangles = triangle.split( point )
+      new_triangles.each do |t|
+        @triangles.add t
+        #notify :triangle, t
+        #notify :hull, @hull
+      end
+    when :outside
+      directed_edges_visible_to_outside_point = @hull.directed_edges_visible_to_outside_point point
+      # create triangles between point and visible edges
+      directed_edges_visible_to_outside_point.collect(&:edge).each do |edge|
+        #notify :edge_point_outside, edge
+        triangle = Polygon.new self, [ edge, point ]
+        @triangles.add triangle
+        #notify :triangle, triangle
+      end
+      @hull.expand point, directed_edges_visible_to_outside_point
+      #notify :hull, @hull
+    end
+  end
+
   def triangle_containing point
     # todo: accept triangle to start search at and traverse triangles in direction of point
     # todo: or.. use a tree to track mesh triangle splits then descend from root to leaf triangle
     @triangles.detect { |t| t.inside? point }
+  end
+
+  def triangulate_bowyerwatson point
+    if @points.size == 1
+      container = @options[:container] == :super_triangle ? container_super_triangle : container_triangulated_box
+      @triangles += container
+      notify :bowyerwatson_container, container
+    end
+    triangle = triangle_containing point
+    notify :bowyerwatson_hole, triangle
+    @triangles.delete triangle
+    hole, _ = bowyerwatson_neighbor_recursion triangle, point
+    new_triangles = hole.split( point )
+    @triangles += new_triangles
+    notify :bowyerwatson_split, new_triangles
   end
 
   def container_super_triangle
@@ -106,21 +146,6 @@ class Mesh
     ab2 = add_point( Point.new( 0, @height) )
     b   = add_point( Point.new( @width, @height) )
     [ Polygon.new( self, [ a, ab1, ab2 ] ), Polygon.new( self, [ b, ab1, ab2 ] ) ]
-  end
-
-  def triangulate_bowyerwatson point
-    if @points.size == 1
-      container = @options[:container] == :super_triangle ? container_super_triangle : container_triangulated_box
-      @triangles += container
-      notify :bowyerwatson_container, container
-    end
-    triangle = triangle_containing point
-    notify :bowyerwatson_hole, triangle
-    @triangles.delete triangle
-    hole, _ = bowyerwatson_neighbor_recursion triangle, point
-    new_triangles = hole.split( point )
-    @triangles += new_triangles
-    notify :bowyerwatson_split, new_triangles
   end
 
   def bowyerwatson_neighbor_recursion triangle, point, hole = triangle, tested = []
@@ -140,45 +165,18 @@ class Mesh
     [ hole, tested ]
   end
 
-  def triangulate_simple point
-    return if @points.size < 3   # just collect points
-    if @points.size == 3  # first triangle & convex hull
-      triangle = Polygon.new self, @points
-      @triangles.add triangle
-      #notify :triangle, triangle
-      @hull = Polygon.new self, @points
-      #notify :hull, @hull
-      return
-    end
-    # new point may be inside or outside existing convex hull
-    directed_edges_visible_to_outside_point = @hull.directed_edges_visible_to_outside_point point
-    point_location = directed_edges_visible_to_outside_point.empty? ? :inside : :outside
-    case point_location
-    when :inside
-      # split triangle into 3 triangles around point
-      triangle = triangle_containing point
-      @triangles.delete triangle
-      #notify :delete_triangle, triangle
-      #notify :hull, @hull
-      new_triangles = triangle.split( point )
-      new_triangles.each do |t|
-        @triangles.add t
-        #notify :triangle, t
-        #notify :hull, @hull
-      end
-    when :outside
-      # create triangles between point and visible edges
-      directed_edges_visible_to_outside_point.collect(&:edge).each do |edge|
-        #notify :edge_point_outside, edge
-        triangle = Polygon.new self, [ edge, point ]
-        @triangles.add triangle
-        #notify :triangle, triangle
-      end
-      @hull.expand point, directed_edges_visible_to_outside_point
-      #notify :hull, @hull
-    else
-      raise "Unknown point_location #{point_location}"
-    end
+  def voronoi point
+    # todo: this is a naive approach, can do something much more efficient within bowyerwatson
+    triangles = @triangles.select { |t| t.points.include? point }
+    # todo : order triangles by neighbor - not needed because Polygon.new will order points clockwise ?
+    #ordered = [ triangles.shift ]
+    #until triangles.empty?
+    #  triangles = triangles - ordered
+    #  triangles.each_with_object(ordered) { |t, ot| ot << t if t.neighbors.include? ot.last }
+    #end
+    # fix: Polygon.new will fail for > 3 points, extend it to work!
+    cell = Polygon.new @voronoi, triangles.collect(&:center)
+    @voronoi.cells << cell
   end
 
   def delaunay_test

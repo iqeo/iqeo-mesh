@@ -149,13 +149,40 @@ describe 'Mesh' do
 
     context 'for point added' do
 
-      it  'inside triangle'
+      it  'inside triangle' do
+        mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :simple
+        @triangle_points.each { |point| mesh.add_point_at point.x, point.y }
+        mesh.triangles.size.should eq 1
+        @points_inside_triangle.each_with_index do |point,i|
+          mesh.add_point_at point.x, point.y
+          mesh.triangles.size.should eq ( 1 + ( ( i + 1 ) * 2 ) )                  # 1 -> 3 -> 5 -> 7 triangles
+          mesh.triangles.select { |t| t.points.include? point }.size.should eq 3  # always 3 triangles centered around new point
+        end
+      end
 
       context 'outside triangle' do
 
-        it 'with single edge visible'
+        it 'with single edge visible' do
+          pending 'works for single point, breaks for subsequent points - undefined method "start" for nil:NilClass in Polygon::expand'
+          mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :simple
+          @triangle_points.each { |point| mesh.add_point_at point.x, point.y }
+          mesh.triangles.size.should eq 1
+          @points_outside_single.each_with_index do |point,i|
+            mesh.add_point_at point.x, point.y
+            mesh.triangles.size.should eq ( i + 2 )
+          end
+        end
 
-        it 'with multiple edges visible'
+        it 'with multiple edges visible' do
+          mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :simple
+          @triangle_points.each { |point| mesh.add_point_at point.x, point.y }
+          mesh.triangles.size.should eq 1
+          @points_outside_multiple.each_with_index do |point,i|
+            mesh.add_point_at point.x, point.y
+            mesh.triangles.size.should eq ( 1 + ( ( i + 1 ) * 2 ) )  # 1 -> 3 -> 5 -> 7 triangles
+            mesh.hull.points.size.should eq 3                        # hull stays a triangle as each vertex is extended to new point
+          end
+        end
 
       end
 
