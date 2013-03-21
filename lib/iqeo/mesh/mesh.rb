@@ -13,7 +13,7 @@ class Mesh
     raise 'width and height cannot be nil' if width.nil? || height.nil?
     @width = width
     @height = height
-    @options = { listener: nil, triangulation: false, container: :triangulated_box, voronoi: false }.merge! options
+    @options = { listener: nil, triangulation: false, container: :box, voronoi: false }.merge! options
     @points = Set.new
     @edges = Set.new
     @triangles = Set.new
@@ -66,7 +66,7 @@ class Mesh
     case @options[:triangulation]
     when false                  then triangulate_simple point
     when :simple                then triangulate_simple point
-    when :delaunay_bowyerwatson then triangulate_bowyerwatson point
+    when :bowyerwatson then triangulate_bowyerwatson point
     else
       raise "Unknown triangulation: #{@options[:triangulation]}"
     end
@@ -119,7 +119,7 @@ class Mesh
 
   def triangulate_bowyerwatson point
     if @points.size == 1
-      container = @options[:container] == :super_triangle ? container_super_triangle : container_triangulated_box
+      container = @options[:container] == :triangle ? container_triangle : container_box
       @triangles += container
       notify :bowyerwatson_container, container
     end
@@ -132,7 +132,7 @@ class Mesh
     notify :bowyerwatson_split, new_triangles
   end
 
-  def container_super_triangle
+  def container_triangle
     points = []
     points << add_point( Point.new( 0, 0 ) )
     points << add_point( Point.new( @width * 2, 0 ) )
@@ -140,7 +140,7 @@ class Mesh
     [ Polygon.new( self, points ) ]
   end
 
-  def container_triangulated_box
+  def container_box
     a   = add_point( Point.new( 0, 0) )
     ab1 = add_point( Point.new( @width, 0) )
     ab2 = add_point( Point.new( 0, @height) )

@@ -2,10 +2,20 @@ require 'iqeo/mesh'
 
 describe 'Mesh' do
 
-
   before :all do
     @height = 1000
     @width  = 2000
+    # container box points
+    @pcb0 = Iqeo::Mesh::Point.new 0, 0
+    @pcb1 = Iqeo::Mesh::Point.new 0, @height
+    @pcb2 = Iqeo::Mesh::Point.new @width, 0
+    @pcb3 = Iqeo::Mesh::Point.new @width, @height
+    @container_box_points = [ @pcb0, @pcb1, @pcb2, @pcb3 ]
+    # container triangle points
+    @pct0 = Iqeo::Mesh::Point.new 0, 0
+    @pct1 = Iqeo::Mesh::Point.new 0,@height * 2
+    @pct2 = Iqeo::Mesh::Point.new @width * 2, 0
+    @container_triangle_points = [ @pct0, @pct1, @pct2 ]
     # triangle points
     @pt0 = Iqeo::Mesh::Point.new 20, 10
     @pt1 = Iqeo::Mesh::Point.new 30, 20
@@ -59,7 +69,7 @@ describe 'Mesh' do
       expect { mesh = Iqeo::Mesh::Mesh.new @width, @height }.to_not raise_error
       mesh.options[:listener].should      be_nil
       mesh.options[:triangulation].should be_false
-      mesh.options[:container].should     eq :triangulated_box
+      mesh.options[:container].should     eq :box
     end
 
     it 'accepts options' do
@@ -129,9 +139,9 @@ describe 'Mesh' do
 
   end
 
-  context 'performs simple triangulation' do
+  context 'simple triangulation' do
 
-    it 'by default' do
+    it 'is default' do
       mesh = Iqeo::Mesh::Mesh.new @width, @height
       @triangle_points.each { |point| mesh.add_point_at point.x, point.y }
       mesh.points.size.should eq 3
@@ -139,7 +149,7 @@ describe 'Mesh' do
       mesh.triangles.size.should eq 1
     end
 
-    it 'when specified' do
+    it 'can be specified' do
       mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :simple
       @triangle_points.each { |point| mesh.add_point_at point.x, point.y }
       mesh.points.size.should eq 3
@@ -147,7 +157,7 @@ describe 'Mesh' do
       mesh.triangles.size.should eq 1
     end
 
-    context 'for point added' do
+    context 'adds point' do
 
       it  'inside triangle' do
         mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :simple
@@ -214,6 +224,36 @@ describe 'Mesh' do
       @points_outside_single.each do |point|
         mesh.triangle_containing( point ).should be_nil
       end
+    end
+
+  end
+
+  context 'bowyer-watson triangulation' do
+
+    context 'when specified' do
+
+      it 'defaults to container box' do
+        mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :bowyerwatson
+        mesh.options[:container].should eq :box
+        mesh.points.should eq @container_box_points.to_set
+      end
+
+      it 'accepts container box' do
+        mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :bowyerwatson, container: :box
+        mesh.options[:container].should eq :box
+        mesh.points.should eq @container_box_points.to_set
+        mesh.add_point_at @pt0.x, @pt0.y
+        mesh.triangles.size.should eq 4
+      end
+
+      it 'accepts container triangle' do
+        mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :bowyerwatson, container: :triangle
+        mesh.options[:container].should eq :triangle
+        mesh.points.should eq @container_triangle_points.to_set
+        mesh.add_point_at @pt0.x, @pt0.y
+        mesh.triangles.size.should eq 3
+      end
+
     end
 
   end
