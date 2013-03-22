@@ -45,6 +45,9 @@ describe 'Mesh' do
     @points_outside_multiple = [ @pom0, @pom1, @pom2 ]
     @multiple_directed_edges_visible = { @pom0 => [ @de0, @de1 ], @pom1 => [ @de1, @de2 ], @pom2 => [ @de2, @de0 ] }
     @multiple_edges_visible = { @pom0 => [ @edge0, @edge1 ], @pom1 => [ @edge1, @edge2 ], @pom2 => [ @edge2, @edge0 ] }
+    # point sequence to fail delaunay for simple triangulation
+    @points_failing_delaunay_for_simple_triangulation = @triangle_points + @points_outside_multiple
+    @points_passing_delaunay_for_simple_triangulation = @triangle_points
   end
 
   context 'initialization' do
@@ -139,67 +142,6 @@ describe 'Mesh' do
 
   end
 
-  context 'simple triangulation' do
-
-    it 'is default' do
-      mesh = Iqeo::Mesh::Mesh.new @width, @height
-      @triangle_points.each { |point| mesh.add_point_at point.x, point.y }
-      mesh.points.size.should eq 3
-      mesh.edges.size.should eq 3
-      mesh.triangles.size.should eq 1
-    end
-
-    it 'can be specified' do
-      mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :simple
-      @triangle_points.each { |point| mesh.add_point_at point.x, point.y }
-      mesh.points.size.should eq 3
-      mesh.edges.size.should eq 3
-      mesh.triangles.size.should eq 1
-    end
-
-    context 'adds point' do
-
-      it  'inside triangle' do
-        mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :simple
-        @triangle_points.each { |point| mesh.add_point_at point.x, point.y }
-        mesh.triangles.size.should eq 1
-        @points_inside_triangle.each_with_index do |point,i|
-          mesh.add_point_at point.x, point.y
-          mesh.triangles.size.should eq ( 1 + ( ( i + 1 ) * 2 ) )                  # 1 -> 3 -> 5 -> 7 triangles
-          mesh.triangles.select { |t| t.points.include? point }.size.should eq 3  # always 3 triangles centered around new point
-        end
-      end
-
-      context 'outside triangle' do
-
-        it 'with single edge visible' do
-          pending 'works for single point, breaks for subsequent points - undefined method "start" for nil:NilClass in Polygon::expand'
-          mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :simple
-          @triangle_points.each { |point| mesh.add_point_at point.x, point.y }
-          mesh.triangles.size.should eq 1
-          @points_outside_single.each_with_index do |point,i|
-            mesh.add_point_at point.x, point.y
-            mesh.triangles.size.should eq ( i + 2 )
-          end
-        end
-
-        it 'with multiple edges visible' do
-          mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :simple
-          @triangle_points.each { |point| mesh.add_point_at point.x, point.y }
-          mesh.triangles.size.should eq 1
-          @points_outside_multiple.each_with_index do |point,i|
-            mesh.add_point_at point.x, point.y
-            mesh.triangles.size.should eq ( 1 + ( ( i + 1 ) * 2 ) )  # 1 -> 3 -> 5 -> 7 triangles
-            mesh.hull.points.size.should eq 3                        # hull stays a triangle as each vertex is extended to new point
-          end
-        end
-
-      end
-
-    end
-
-  end
-
   context 'detects triangle' do
 
     it 'at coordinates' do
@@ -228,6 +170,95 @@ describe 'Mesh' do
 
   end
 
+  it 'checks self for consistency' do
+    mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :simple
+    mesh.check?.should be_true
+    @triangle_points.each { |point| mesh.add_point_at point.x, point.y }
+    mesh.check?.should be_true
+  end
+
+  context 'simple triangulation' do
+
+    it 'is default' do
+      mesh = Iqeo::Mesh::Mesh.new @width, @height
+      @triangle_points.each { |point| mesh.add_point_at point.x, point.y }
+      mesh.points.size.should eq 3
+      mesh.edges.size.should eq 3
+      mesh.triangles.size.should eq 1
+      mesh.check?.should be_true
+    end
+
+    it 'can be specified' do
+      mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :simple
+      @triangle_points.each { |point| mesh.add_point_at point.x, point.y }
+      mesh.points.size.should eq 3
+      mesh.edges.size.should eq 3
+      mesh.triangles.size.should eq 1
+      mesh.check?.should be_true
+    end
+
+    context 'adds points' do
+
+      it  'inside triangle' do
+        mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :simple
+        @triangle_points.each { |point| mesh.add_point_at point.x, point.y }
+        mesh.triangles.size.should eq 1
+        @points_inside_triangle.each_with_index do |point,i|
+          mesh.add_point_at point.x, point.y
+          mesh.triangles.size.should eq ( 1 + ( ( i + 1 ) * 2 ) )                  # 1 -> 3 -> 5 -> 7 triangles
+          mesh.triangles.select { |t| t.points.include? point }.size.should eq 3  # always 3 triangles centered around new point
+        end
+        mesh.check?.should be_true
+      end
+
+      context 'outside triangle' do
+
+        it 'with single edge visible' do
+          pending 'works for single point, breaks for subsequent points - undefined method "start" for nil:NilClass in Polygon::expand'
+          mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :simple
+          @triangle_points.each { |point| mesh.add_point_at point.x, point.y }
+          mesh.triangles.size.should eq 1
+          @points_outside_single.each_with_index do |point,i|
+            mesh.add_point_at point.x, point.y
+            mesh.triangles.size.should eq ( i + 2 )
+          end
+          mesh.check?.should be_true
+        end
+
+        it 'with multiple edges visible' do
+          mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :simple
+          @triangle_points.each { |point| mesh.add_point_at point.x, point.y }
+          mesh.triangles.size.should eq 1
+          @points_outside_multiple.each_with_index do |point,i|
+            mesh.add_point_at point.x, point.y
+            mesh.triangles.size.should eq ( 1 + ( ( i + 1 ) * 2 ) )  # 1 -> 3 -> 5 -> 7 triangles
+            mesh.hull.points.size.should eq 3                        # hull stays a triangle as each vertex is extended to new point
+          end
+          mesh.check?.should be_true
+        end
+
+      end
+
+    end
+
+    context 'does not maintain delaunay' do
+
+      it 'test may pass' do
+        mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :simple
+        @points_passing_delaunay_for_simple_triangulation.each { |point| mesh.add_point_at point.x, point.y }
+        mesh.should be_delaunay
+      end
+
+      it 'test may fail' do
+        mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :simple
+        @points_failing_delaunay_for_simple_triangulation.each { |point| mesh.add_point_at point.x, point.y }
+        mesh.should_not be_delaunay
+      end
+
+    end
+
+  end
+
   context 'bowyer-watson triangulation' do
 
     context 'when specified' do
@@ -235,23 +266,84 @@ describe 'Mesh' do
       it 'defaults to container box' do
         mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :bowyerwatson
         mesh.options[:container].should eq :box
-        mesh.points.should eq @container_box_points.to_set
+        mesh.points.should be_empty
+        mesh.add_point_at @pt0.x, @pt0.y
+        mesh.triangles.size.should eq 4
+        mesh.points.should eq ( @container_box_points + [ @pt0 ] ).to_set
+        mesh.check?.should be_true
       end
 
       it 'accepts container box' do
         mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :bowyerwatson, container: :box
         mesh.options[:container].should eq :box
-        mesh.points.should eq @container_box_points.to_set
+        mesh.points.should be_empty
         mesh.add_point_at @pt0.x, @pt0.y
         mesh.triangles.size.should eq 4
+        mesh.points.should eq ( @container_box_points + [ @pt0 ] ).to_set
+        mesh.check?.should be_true
       end
 
       it 'accepts container triangle' do
         mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :bowyerwatson, container: :triangle
         mesh.options[:container].should eq :triangle
-        mesh.points.should eq @container_triangle_points.to_set
+        mesh.points.should be_empty
         mesh.add_point_at @pt0.x, @pt0.y
         mesh.triangles.size.should eq 3
+        mesh.points.should eq ( @container_triangle_points + [ @pt0 ] ).to_set
+        mesh.check?.should be_true
+      end
+
+    end
+
+    context 'adds points' do
+
+      it 'of a small triangle in container box' do
+        mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :bowyerwatson, container: :box
+        @triangle_points.each { |point| mesh.add_point_at point.x, point.y }
+        mesh.triangles.size.should eq 8
+        mesh.check?.should be_true
+      end
+
+      it 'of a small triangle in container triangle' do
+        mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :bowyerwatson, container: :triangle
+        @triangle_points.each { |point| mesh.add_point_at point.x, point.y }
+        mesh.triangles.size.should eq 7
+        mesh.check?.should be_true
+      end
+
+    end
+
+    context 'maintains delaunay mesh' do
+
+      it 'for small triangle' do
+        mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :bowyerwatson, container: :box
+        @triangle_points.each { |point| mesh.add_point_at point.x, point.y }
+        mesh.check?.should be_true
+        mesh.should be_delaunay
+      end
+
+      it 'for small triangle and points inside' do
+        pending 'failing delaunay test'
+        mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :bowyerwatson, container: :box
+        ( @triangle_points + @points_inside_triangle ).each { |point| mesh.add_point_at point.x, point.y }
+        mesh.check?.should be_true
+        mesh.should be_delaunay
+      end
+
+      it 'for small triangle and points outside' do
+        pending 'failing delaunay test'
+        mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :bowyerwatson, container: :box
+        ( @triangle_points + @points_outside_single ).each { |point| mesh.add_point_at point.x, point.y }
+        mesh.check?.should be_true
+        mesh.should be_delaunay
+      end
+
+      it 'for small triangle and points outside causing collinearity' do
+        pending 'Raises RuntimeError: points are collinear'
+        mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :bowyerwatson, container: :box
+        ( @triangle_points + @points_outside_multiple ).each { |point| mesh.add_point_at point.x, point.y }
+        mesh.check?.should be_true
+        mesh.should be_delaunay
       end
 
     end

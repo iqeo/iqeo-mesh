@@ -109,6 +109,7 @@ describe 'Polygon' do
   end
 
   it 'checks self for consistency' do
+    # fix: make tests independent
     # keep this test near top as poly tests below will add > 2 polys to @edge?s, this will not happen with a single @Mesh
     @poly = Iqeo::Mesh::Polygon.new @mesh, @triangle_points
     @poly.check?.should be_true

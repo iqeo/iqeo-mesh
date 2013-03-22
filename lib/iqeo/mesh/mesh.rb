@@ -77,9 +77,7 @@ class Mesh
     if @points.size == 3  # first triangle & convex hull
       triangle = Polygon.new self, @points
       @triangles.add triangle
-      #notify :triangle, triangle
       @hull = Polygon.new self, @points
-      #notify :hull, @hull
       return
     end
     # new point may be inside or outside existing convex hull
@@ -89,25 +87,16 @@ class Mesh
       # split triangle into 3 triangles around point
       triangle = triangle_containing point
       @triangles.delete triangle
-      #notify :delete_triangle, triangle
-      #notify :hull, @hull
       new_triangles = triangle.split( point )
-      new_triangles.each do |t|
-        @triangles.add t
-        #notify :triangle, t
-        #notify :hull, @hull
-      end
+      new_triangles.each { |t| @triangles.add t }
     when :outside
-      directed_edges_visible_to_outside_point = @hull.directed_edges_visible_to_outside_point point
       # create triangles between point and visible edges
+      directed_edges_visible_to_outside_point = @hull.directed_edges_visible_to_outside_point point
       directed_edges_visible_to_outside_point.collect(&:edge).each do |edge|
-        #notify :edge_point_outside, edge
         triangle = Polygon.new self, [ edge, point ]
         @triangles.add triangle
-        #notify :triangle, triangle
       end
       @hull.expand point, directed_edges_visible_to_outside_point
-      #notify :hull, @hull
     end
   end
 
@@ -165,20 +154,6 @@ class Mesh
     [ hole, tested ]
   end
 
-  def voronoi point
-    # todo: this is a naive approach, can do something much more efficient within bowyerwatson
-    triangles = @triangles.select { |t| t.points.include? point }
-    # todo : order triangles by neighbor - not needed because Polygon.new will order points clockwise ?
-    #ordered = [ triangles.shift ]
-    #until triangles.empty?
-    #  triangles = triangles - ordered
-    #  triangles.each_with_object(ordered) { |t, ot| ot << t if t.neighbors.include? ot.last }
-    #end
-    # fix: Polygon.new will fail for > 3 points, extend it to work!
-    cell = Polygon.new @voronoi, triangles.collect(&:center)
-    @voronoi.cells << cell
-  end
-
   def delaunay_test
     failures = @triangles.each_with_object({}) do |triangle,failures|
       non_delaunay_points = @points.select do |point|
@@ -205,6 +180,20 @@ class Mesh
 
   def check?
     ! check_mesh.values.include? false
+  end
+
+  def voronoi point
+    # todo: this is a naive approach, can do something much more efficient within bowyerwatson
+    triangles = @triangles.select { |t| t.points.include? point }
+    # todo : order triangles by neighbor - not needed because Polygon.new will order points clockwise ?
+    #ordered = [ triangles.shift ]
+    #until triangles.empty?
+    #  triangles = triangles - ordered
+    #  triangles.each_with_object(ordered) { |t, ot| ot << t if t.neighbors.include? ot.last }
+    #end
+    # fix: Polygon.new will fail for > 3 points, extend it to work!
+    cell = Polygon.new @voronoi, triangles.collect(&:center)
+    @voronoi.cells << cell
   end
 
 end
