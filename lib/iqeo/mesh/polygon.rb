@@ -44,13 +44,13 @@ class Polygon
   end
 
   def outside? point
-    # inside point is right of (clockwise) ALL edges (clockwise pointing)
+    # outside point could be left or right of directed edges, so invert inside? instead
     ! inside? point
   end
 
   def inside? point
-    # outside point is left of (anti-clockwise) at least 1 edge, so detect is fast
-    @directed_edges.detect { |edge| edge.left? point }.nil?
+    # inside point is right of all directed edges
+    @directed_edges.all? { |de| de.right? point }
   end
 
   def edges_visible_to_outside_point point
@@ -120,8 +120,8 @@ class Polygon
     d = ( b.x * c.y - b.y * c.x ) * 2
     b2 = b.x**2 + b.y**2
     c2 = c.x**2 + c.y**2
-    ux = ( c.y * b2 - b.y * c2 ) / d
-    uy = ( b.x * c2 - c.x * b2 ) / d
+    ux = ( c.y * b2 - b.y * c2 ) / d.to_f # division needs to be done in floating point for precise circumcircle center
+    uy = ( b.x * c2 - c.x * b2 ) / d.to_f # division needs to be done in floating point for precise circumcircle center
     # calculate radius squared while we're still at origin
     @radius2 = ux**2 + uy**2
     # translate back to actual circumcenter

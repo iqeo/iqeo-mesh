@@ -26,28 +26,26 @@ describe 'Mesh' do
     @edge1 = Iqeo::Mesh::Edge.new @pt1, @pt2
     @edge2 = Iqeo::Mesh::Edge.new @pt2, @pt0
     @triangle_edges = [ @edge0, @edge1, @edge2 ]
-    # points inside triangle
-    @pi0 = Iqeo::Mesh::Point.new 20, 13
-    @pi1 = Iqeo::Mesh::Point.new 13, 27
-    @pi2 = Iqeo::Mesh::Point.new 28, 20
+    # points inside triangle, with no collinear points
+    @pi0 = Iqeo::Mesh::Point.new 22, 16
+    @pi1 = Iqeo::Mesh::Point.new 16, 24
+    @pi2 = Iqeo::Mesh::Point.new 24, 22
     @points_inside_triangle = [ @pi0, @pi1, @pi2 ]
-     # points outside triangle, single edge visible
-    @pos0 = Iqeo::Mesh::Point.new 30, 10
-    @pos1 = Iqeo::Mesh::Point.new 30, 30
-    @pos2 = Iqeo::Mesh::Point.new 10, 10
+    # points outside triangle, single edge visible, with no collinear points
+    @pos0 = Iqeo::Mesh::Point.new 28, 12
+    @pos1 = Iqeo::Mesh::Point.new 28, 28
+    @pos2 = Iqeo::Mesh::Point.new 12, 12
     @points_outside_single = [ @pos0, @pos1, @pos2 ]
-    @single_directed_edges_visible = { @pos0 => [ @de0 ], @pos1 => [ @de1 ], @pos2 => [ @de2 ] }
-    @single_edges_visible = { @pos0 => [ @edge0 ], @pos1 => [ @edge1 ], @pos2 => [ @edge2 ] }
     # points outside triangle, multiple edges visible
     @pom0 = Iqeo::Mesh::Point.new 40, 20
-    @pom1 = Iqeo::Mesh::Point.new 0, 40
+    @pom1 = Iqeo::Mesh::Point.new 1, 40
     @pom2 = Iqeo::Mesh::Point.new 20, 0
     @points_outside_multiple = [ @pom0, @pom1, @pom2 ]
-    @multiple_directed_edges_visible = { @pom0 => [ @de0, @de1 ], @pom1 => [ @de1, @de2 ], @pom2 => [ @de2, @de0 ] }
-    @multiple_edges_visible = { @pom0 => [ @edge0, @edge1 ], @pom1 => [ @edge1, @edge2 ], @pom2 => [ @edge2, @edge0 ] }
     # point sequence to fail delaunay for simple triangulation
     @points_failing_delaunay_for_simple_triangulation = @triangle_points + @points_outside_multiple
     @points_passing_delaunay_for_simple_triangulation = @triangle_points
+    # collinear points
+    @point_collinear0 = Iqeo::Mesh::Point.new 0, 40
   end
 
   context 'initialization' do
@@ -214,7 +212,6 @@ describe 'Mesh' do
       context 'outside triangle' do
 
         it 'with single edge visible' do
-          pending 'works for single point, breaks for subsequent points - undefined method "start" for nil:NilClass in Polygon::expand'
           mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :simple
           @triangle_points.each { |point| mesh.add_point_at point.x, point.y }
           mesh.triangles.size.should eq 1
@@ -317,33 +314,36 @@ describe 'Mesh' do
 
       it 'for small triangle' do
         mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :bowyerwatson, container: :box
-        @triangle_points.each { |point| mesh.add_point_at point.x, point.y }
-        mesh.check?.should be_true
-        mesh.should be_delaunay
+        @triangle_points.each do |point|
+          mesh.add_point_at point.x, point.y
+          mesh.check?.should be_true
+          mesh.should be_delaunay
+        end
       end
 
       it 'for small triangle and points inside' do
-        pending 'failing delaunay test'
         mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :bowyerwatson, container: :box
-        ( @triangle_points + @points_inside_triangle ).each { |point| mesh.add_point_at point.x, point.y }
-        mesh.check?.should be_true
-        mesh.should be_delaunay
+        ( @triangle_points + @points_inside_triangle ).each do |point|
+          mesh.add_point_at point.x, point.y
+          mesh.check?.should be_true
+          mesh.should be_delaunay
+        end
       end
 
       it 'for small triangle and points outside' do
-        pending 'failing delaunay test'
+        #pending 'failing delaunay test'
         mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :bowyerwatson, container: :box
-        ( @triangle_points + @points_outside_single ).each { |point| mesh.add_point_at point.x, point.y }
-        mesh.check?.should be_true
-        mesh.should be_delaunay
+        ( @triangle_points + @points_outside_single ).each do |point|
+          mesh.add_point_at point.x, point.y
+          mesh.check?.should be_true
+          mesh.should be_delaunay
+        end
       end
 
-      it 'for small triangle and points outside causing collinearity' do
-        pending 'Raises RuntimeError: points are collinear'
+      it 'raises exception for small triangle and collinear point' do
         mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :bowyerwatson, container: :box
-        ( @triangle_points + @points_outside_multiple ).each { |point| mesh.add_point_at point.x, point.y }
-        mesh.check?.should be_true
-        mesh.should be_delaunay
+        @triangle_points.each { |point| mesh.add_point_at point.x, point.y }
+        expect { mesh.add_point_at @point_collinear0.x, @point_collinear0.y }.to raise_error RuntimeError, 'point is not inside a triangle'
       end
 
     end

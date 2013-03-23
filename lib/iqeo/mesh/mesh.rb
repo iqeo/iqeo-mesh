@@ -113,12 +113,17 @@ class Mesh
       notify :bowyerwatson_container, container
     end
     triangle = triangle_containing point
-    notify :bowyerwatson_hole, triangle
-    @triangles.delete triangle
-    hole, _ = bowyerwatson_neighbor_recursion triangle, point
-    new_triangles = hole.split( point )
-    @triangles += new_triangles
-    notify :bowyerwatson_split, new_triangles
+    if triangle
+      notify :bowyerwatson_hole, triangle
+      @triangles.delete triangle
+      hole, _ = bowyerwatson_neighbor_recursion triangle, point
+      new_triangles = hole.split( point )
+      @triangles += new_triangles
+      notify :bowyerwatson_split, new_triangles
+    else
+      # todo: this can happen for point on or aligned with a triangle's edge (collinear with edge points)
+      raise 'point is not inside a triangle'
+    end
   end
 
   def container_triangle
