@@ -24,7 +24,7 @@ describe 'Polygon' do
     @triangles_anticlockwise = [ [ @pt0, @pt2, @pt1 ], [ @pt1, @pt0, @pt2 ], [ @pt2, @pt1, @pt0 ] ]
     # triangle attributes
     @center = Iqeo::Mesh::Point.new 18, 21
-    @radius2 = 125
+    @radius2 = 138
     # points inside triangle
     @pi0 = Iqeo::Mesh::Point.new 20, 13
     @pi1 = Iqeo::Mesh::Point.new 13, 27
@@ -60,7 +60,7 @@ describe 'Polygon' do
     @pao = Iqeo::Mesh::Point.new 0,0
     @triangles_at_origin = [ [ @pao, @pt1, @pt2,], [ @pao, @pt2, @pt1 ], [ @pt1, @pao, @pt2 ], [ @pt1, @pt2, @pao ], [ @pt2, @pao, @pt1 ], [ @pt2, @pao, @pt1 ] ]
     @center_tao = Iqeo::Mesh::Point.new 13, 12
-    @radius2_tao = 313
+    @radius2_tao = 331
     # mesh
     @mesh_height = 1000
     @mesh_width  = 2000
@@ -75,7 +75,7 @@ describe 'Polygon' do
         expect { poly = Iqeo::Mesh::Polygon.new @mesh, points }.to_not raise_error
         poly.points.should eq @triangle_points
         poly.center.should eq @center
-        poly.radius2.should eq @radius2
+        poly.radius2.to_i.should eq @radius2
         poly.edges.should eq @triangle_edges
         poly.directed_edges.should eq @triangle_directed_edges
       end
@@ -87,7 +87,7 @@ describe 'Polygon' do
         expect { poly = Iqeo::Mesh::Polygon.new @mesh, points }.to_not raise_error
         poly.points.should eq @triangle_points
         poly.center.should eq @center
-        poly.radius2.should eq @radius2
+        poly.radius2.to_i.should eq @radius2
         poly.edges.should eq @triangle_edges
         poly.directed_edges.should eq @triangle_directed_edges
       end
@@ -98,7 +98,7 @@ describe 'Polygon' do
         poly = nil
         expect { poly = Iqeo::Mesh::Polygon.new @mesh, points }.to_not raise_error
         poly.center.should eq @center_tao
-        poly.radius2.should eq @radius2_tao
+        poly.radius2.to_i.should eq @radius2_tao
       end
     end
 

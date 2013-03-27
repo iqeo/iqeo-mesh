@@ -120,16 +120,18 @@ class Polygon
     d = ( b.x * c.y - b.y * c.x ) * 2
     b2 = b.x**2 + b.y**2
     c2 = c.x**2 + c.y**2
-    ux = ( c.y * b2 - b.y * c2 ) / d.to_f # division needs to be done in floating point for precise circumcircle center
-    uy = ( b.x * c2 - c.x * b2 ) / d.to_f # division needs to be done in floating point for precise circumcircle center
+    ux = ( c.y * b2 - b.y * c2 ) / d.to_f # division in floating point for precise circumcircle center and radius
+    uy = ( b.x * c2 - c.x * b2 ) / d.to_f # division in floating point for precise circumcircle center and radius
     # calculate radius squared while we're still at origin
     @radius2 = ux**2 + uy**2
     # translate back to actual circumcenter
-    @center = Point.new ux+a.x, uy+a.y
+    @center_exact_x = ux+a.x
+    @center_exact_y = uy+a.y
+    @center = Point.new @center_exact_x.to_i, @center_exact_y.to_i
   end
 
   def circumcircle_contains point
-    (point.x-@center.x)**2+(point.y-@center.y)**2 < @radius2
+    (point.x-@center_exact_x)**2+(point.y-@center_exact_y)**2 < @radius2
   end
 
   def check
