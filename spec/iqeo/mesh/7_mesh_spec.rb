@@ -33,8 +33,8 @@ describe 'Mesh' do
     @points_inside_triangle = [ @pi0, @pi1, @pi2 ]
     # points outside triangle, single edge visible, with no collinear points
     @pos0 = Iqeo::Mesh::Point.new 28, 12
-    @pos1 = Iqeo::Mesh::Point.new 28, 28
-    @pos2 = Iqeo::Mesh::Point.new 12, 12
+    @pos1 = Iqeo::Mesh::Point.new 28, 27
+    @pos2 = Iqeo::Mesh::Point.new 12, 13
     @points_outside_single = [ @pos0, @pos1, @pos2 ]
     # points outside triangle, multiple edges visible
     @pom0 = Iqeo::Mesh::Point.new 40, 20
@@ -46,6 +46,16 @@ describe 'Mesh' do
     @points_passing_delaunay_for_simple_triangulation = @triangle_points
     # collinear points
     @point_collinear0 = Iqeo::Mesh::Point.new 0, 40
+    # points inside triangle, with collinear points
+    @pic0 = Iqeo::Mesh::Point.new 16, 16
+    @pic1 = Iqeo::Mesh::Point.new 18, 18
+    @pic2 = Iqeo::Mesh::Point.new 22, 22
+    @points_inside_triangle_collinear = [ @pic0, @pic1, @pic2 ]
+    # points outside triangle, single edge visible, with collinear points
+    @posc0 = Iqeo::Mesh::Point.new 28, 12
+    @posc1 = Iqeo::Mesh::Point.new 28, 28
+    @posc2 = Iqeo::Mesh::Point.new 12, 12
+    @points_outside_single_collinear = [ @posc0, @posc1, @posc2 ]
   end
 
   context 'initialization' do
@@ -308,6 +318,13 @@ describe 'Mesh' do
         mesh.check?.should be_true
       end
 
+      it 'raises exception for small triangle and collinear point' do
+        pending 'raising exception on collinear points is BS! make it work'
+        mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :bowyerwatson, container: :box
+        @triangle_points.each { |point| mesh.add_point_at point.x, point.y }
+        expect { mesh.add_point_at @point_collinear0.x, @point_collinear0.y }.to raise_error RuntimeError, 'point is not inside a triangle'
+      end
+
     end
 
     context 'maintains delaunay mesh' do
@@ -321,29 +338,49 @@ describe 'Mesh' do
         end
       end
 
-      it 'for small triangle and points inside' do
-        mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :bowyerwatson, container: :box
-        ( @triangle_points + @points_inside_triangle ).each do |point|
-          mesh.add_point_at point.x, point.y
-          mesh.check?.should be_true
-          mesh.should be_delaunay
+      context 'with non-collinear points' do
+
+        it 'for small triangle and points inside' do
+          pending 'figure out some collinear points that can make this fail'
+          mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :bowyerwatson, container: :box
+          ( @triangle_points + @points_inside_triangle ).each do |point|
+            mesh.add_point_at point.x, point.y
+            mesh.check?.should be_true
+            mesh.should be_delaunay
+          end
         end
+
+        it 'for small triangle and points outside' do
+          mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :bowyerwatson, container: :box
+          ( @triangle_points + @points_outside_single ).each do |point|
+            mesh.add_point_at point.x, point.y
+            mesh.check?.should be_true
+            mesh.should be_delaunay
+          end
+        end
+
       end
 
-      it 'for small triangle and points outside' do
-        #pending 'failing delaunay test'
-        mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :bowyerwatson, container: :box
-        ( @triangle_points + @points_outside_single ).each do |point|
-          mesh.add_point_at point.x, point.y
-          mesh.check?.should be_true
-          mesh.should be_delaunay
-        end
-      end
+      context 'with collinear points' do
 
-      it 'raises exception for small triangle and collinear point' do
-        mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :bowyerwatson, container: :box
-        @triangle_points.each { |point| mesh.add_point_at point.x, point.y }
-        expect { mesh.add_point_at @point_collinear0.x, @point_collinear0.y }.to raise_error RuntimeError, 'point is not inside a triangle'
+        it 'for small triangle and points inside' do
+          mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :bowyerwatson, container: :box
+          ( @triangle_points + @points_inside_triangle_collinear ).each do |point|
+            mesh.add_point_at point.x, point.y
+            mesh.check?.should be_true
+            mesh.should be_delaunay
+          end
+        end
+
+        it 'for small triangle and points outside' do
+          mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :bowyerwatson, container: :box
+          ( @triangle_points + @points_outside_single_collinear ).each do |point|
+            mesh.add_point_at point.x, point.y
+            mesh.check?.should be_true
+            mesh.should be_delaunay
+          end
+        end
+
       end
 
     end
