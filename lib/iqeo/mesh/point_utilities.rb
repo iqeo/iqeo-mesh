@@ -9,7 +9,7 @@ module PointUtilities
     min_y = points.min_by { |p| p.y }.y
     start = points.select { |p| p.y == min_y }.min_by { |p| p.x }
     others = points - [ start ]
-    # fix: for 3 points only, extend to n points !!!!!!!!!
+    # todo: for 3 points only, extend to n points !!!!!!!!!
     case clockwise? [ start ] + others
     when true  then return [ start, others[0], others[1] ]
     when false then return [ start, others[1], others[0] ]
@@ -18,14 +18,14 @@ module PointUtilities
   end
 
   def clockwise? points
-    # fix: for 3 points only, extend to list of n points
+    # todo: for 3 points only, extend to list of n points
     cp = cross_product points
     return nil if cp == 0
     cp > 0 ? true : false
   end
 
   def anticlockwise? points
-    # fix: for 3 points only, extend to a list of n points
+    # todo: for 3 points only, extend to a list of n points
     cp = cross_product points
     return nil if cp == 0
     cp < 0 ? true : false
@@ -51,6 +51,11 @@ module PointUtilities
       end
     end
     points
+  end
+
+  def collinear? points
+    # todo: for 3 points only, extend to list of n points
+    cross_product( points ) == 0 ? true : false
   end
 
 end

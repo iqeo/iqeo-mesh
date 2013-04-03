@@ -1,3 +1,5 @@
+require_relative 'point_utilities'
+
 module Iqeo
 module Mesh
 

@@ -387,6 +387,7 @@ describe 'Mesh' do
       end
 
       it 'with square grid of points (collinear and 4 points on circumcircle)' do
+        pending 'polygon detects points collinear with edge are aligned and/or contained'
         mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :bowyerwatson, container: :box
         @square_grid.each do |point|
           puts "#{point.x},#{point.y}"

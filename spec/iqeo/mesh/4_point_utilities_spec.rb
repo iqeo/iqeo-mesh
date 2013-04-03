@@ -13,30 +13,30 @@ describe 'PointUtilities' do
     @p1 = Iqeo::Mesh::Point.new 30, 20
     @p2 = Iqeo::Mesh::Point.new 10, 30
 
-    # colinear points
+    # collinear points
     @p3 = Iqeo::Mesh::Point.new 50, 60
     @p4 = Iqeo::Mesh::Point.new 60, 70
     @p5 = Iqeo::Mesh::Point.new 70, 80
 
     @triangle_point_combos = {
-      [ @p0, @p1, @p2 ] => { clockwise: true,  cross_product:  300 },
-      [ @p0, @p2, @p1 ] => { clockwise: false, cross_product: -300 },
-      [ @p1, @p0, @p2 ] => { clockwise: false, cross_product: -300 },
-      [ @p1, @p2, @p0 ] => { clockwise: true,  cross_product:  300 },
-      [ @p2, @p0, @p1 ] => { clockwise: true,  cross_product:  300 },
-      [ @p2, @p1, @p0 ] => { clockwise: false, cross_product: -300 }
+      [ @p0, @p1, @p2 ] => { clockwise: true,  collinear: false, cross_product:  300 },
+      [ @p0, @p2, @p1 ] => { clockwise: false, collinear: false, cross_product: -300 },
+      [ @p1, @p0, @p2 ] => { clockwise: false, collinear: false, cross_product: -300 },
+      [ @p1, @p2, @p0 ] => { clockwise: true,  collinear: false, cross_product:  300 },
+      [ @p2, @p0, @p1 ] => { clockwise: true,  collinear: false, cross_product:  300 },
+      [ @p2, @p1, @p0 ] => { clockwise: false, collinear: false, cross_product: -300 }
     }
 
-    @colinear_point_combos = {
-      [ @p3, @p4, @p5 ] => { clockwise: nil,   cross_product:    0 },
-      [ @p3, @p5, @p4 ] => { clockwise: nil,   cross_product:    0 },
-      [ @p4, @p3, @p5 ] => { clockwise: nil,   cross_product:    0 },
-      [ @p4, @p5, @p3 ] => { clockwise: nil,   cross_product:    0 },
-      [ @p5, @p3, @p4 ] => { clockwise: nil,   cross_product:    0 },
-      [ @p5, @p4, @p3 ] => { clockwise: nil,   cross_product:    0 }
+    @collinear_point_combos = {
+      [ @p3, @p4, @p5 ] => { clockwise: nil, collinear: true, cross_product: 0 },
+      [ @p3, @p5, @p4 ] => { clockwise: nil, collinear: true, cross_product: 0 },
+      [ @p4, @p3, @p5 ] => { clockwise: nil, collinear: true, cross_product: 0 },
+      [ @p4, @p5, @p3 ] => { clockwise: nil, collinear: true, cross_product: 0 },
+      [ @p5, @p3, @p4 ] => { clockwise: nil, collinear: true, cross_product: 0 },
+      [ @p5, @p4, @p3 ] => { clockwise: nil, collinear: true, cross_product: 0 }
     }
 
-    @all_point_combos = @triangle_point_combos.merge @colinear_point_combos
+    @all_point_combos = @triangle_point_combos.merge @collinear_point_combos
 
     @unique_points = [ @p0, @p1, @p2, @p3, @p4, @p5 ]
 
@@ -60,6 +60,12 @@ describe 'PointUtilities' do
     end
   end
 
+  it 'tests 3 points are collinear' do
+    @all_point_combos.each do |points,answer|
+      collinear?( points ).should eq answer[:collinear]
+    end
+  end
+
   it 'orders 3 points clockwise' do
     points_clockwise_from_topleft = [ @p0, @p1, @p2 ]
     @triangle_point_combos.keys.each do |points|
@@ -68,7 +74,7 @@ describe 'PointUtilities' do
   end
 
   it 'does not reorder colinear points clockwise' do
-    @colinear_point_combos.keys.each do |points|
+    @collinear_point_combos.keys.each do |points|
       clockwise( points ).should be_nil
     end
   end

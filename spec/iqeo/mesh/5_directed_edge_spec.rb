@@ -74,6 +74,14 @@ describe 'DirectedEdge' do
     de.right?( @point_left ).should be_false
   end
 
+  it 'can check a point is collinear' do
+    pending 'edge can check a point is collinear'
+  end
+
+  it 'can check a collinear point is contained' do
+    pending 'edge can check a collinear point is contained'
+  end
+
   it 'can check self for consistency' do
     directed_edge = Iqeo::Mesh::DirectedEdge.new @edge0
     directed_edge.check?.should be_true

@@ -5,7 +5,10 @@ describe 'Edge' do
   before :all do
     @point0 = Iqeo::Mesh::Point.new 100, 200
     @point1 = Iqeo::Mesh::Point.new 300, 400
-    @point2 = Iqeo::Mesh::Point.new 500, 600
+    @point2 = Iqeo::Mesh::Point.new 800, 100
+    @point_collinear = Iqeo::Mesh::Point.new 500, 600
+    @point_non_collinear = Iqeo::Mesh::Point.new 500, 650
+    @point_contained = Iqeo::Mesh::Point.new 200, 300
   end
 
   it 'accepts 2 points' do
@@ -44,6 +47,21 @@ describe 'Edge' do
   it 'can check self for consistency' do
     edge0 = Iqeo::Mesh::Edge.new @point0, @point1
     edge0.check?.should be_true
+  end
+
+  it 'can check a point is collinear' do
+    edge0 = Iqeo::Mesh::Edge.new @point0, @point1
+    edge0.collinear?( @point_collinear ).should be_true
+  end
+
+  it 'can check a point is non collinear' do
+    edge0 = Iqeo::Mesh::Edge.new @point0, @point1
+    edge0.collinear?( @point_non_collinear ).should be_false
+  end
+
+  it 'can check a point is contained' do
+    edge0 = Iqeo::Mesh::Edge.new @point0, @point1
+    edge0.contains?( @point_contained ).should be_true
   end
 
 end

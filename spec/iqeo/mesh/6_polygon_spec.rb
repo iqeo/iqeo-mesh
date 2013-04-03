@@ -145,6 +145,14 @@ describe 'Polygon' do
       @points_outside_circumcircle.each { |point| @poly.circumcircle_contains(point).should be_false }
     end
 
+    it 'outside aligned' do
+      pending 'directededge detects aligned point'
+    end
+
+    it 'inside on edge' do
+      pending 'directededge detects contained point'
+    end
+
   end
 
   context 'detecting directed_edges visible to outside point' do

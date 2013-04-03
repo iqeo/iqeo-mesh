@@ -1,9 +1,12 @@
+require_relative 'point_utilities'
+
 module Iqeo
 module Mesh
 
 class Edge
 
   include Comparable
+  include PointUtilities
 
   attr_reader :points, :polygons
 
@@ -30,6 +33,14 @@ class Edge
 
   def <=> other
     hash <=> other.hash
+  end
+
+  def collinear? point
+    clockwise?( @points + [ point ] ).nil?
+  end
+
+  def contains? point
+    false
   end
 
   def check
