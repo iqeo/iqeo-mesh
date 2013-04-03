@@ -64,8 +64,8 @@ class Mesh
 
   def update point
     case @options[:triangulation]
-    when false                  then triangulate_simple point
-    when :simple                then triangulate_simple point
+    when false         then triangulate_simple point
+    when :simple       then triangulate_simple point
     when :bowyerwatson then triangulate_bowyerwatson point
     else
       raise "Unknown triangulation: #{@options[:triangulation]}"
@@ -122,7 +122,7 @@ class Mesh
       notify :bowyerwatson_split, new_triangles
     else
       # todo: this can happen for point on or aligned with a triangle's edge (collinear with edge points)
-      raise 'point is not inside a triangle'
+      raise "point #{point.x},#{point.y} is not inside a triangle"
     end
   end
 

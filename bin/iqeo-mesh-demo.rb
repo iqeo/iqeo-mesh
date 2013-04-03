@@ -6,11 +6,11 @@ require_relative '../lib/iqeo/mesh'
 
 CHECK_MESH = true
 CHECK_DELAUNAY = true
-WIDTH = 950
-HEIGHT = 950
+WIDTH = 1000
+HEIGHT = 1000
 XOFF = 1
 YOFF = 1
-DELAY = 0.25
+DELAY = 0.2
 POINT_RADIUS = 3
 CENTER_RADIUS = 3
 EDGE_WIDTH = 1
@@ -360,9 +360,24 @@ def options tag, opts={}
   opts.merge( :tags => tag.to_s, :state => ( @show[tag] ? :normal : :hidden ) )
 end
 
+def load_points_from_file filename
+  points = File.open(filename).collect do |line|
+    xy = line.strip.split(/\D+/)
+    OpenStruct.new( x: xy[0].to_i, y: xy[1].to_i ) if xy.size == 2
+  end
+  points.compact
+end
+
+@points = []
+unless ARGV.empty?
+  puts "Loading points from file: #{ARGV[0]}"
+  @points = load_points_from_file ARGV[0]
+  puts "#{@points.size} points loaded"
+end
+
 @mesh = Iqeo::Mesh::Mesh.new WIDTH, HEIGHT,
                  listener: lambda { |cmd,*args| mesh_listener cmd, *args },
-                 triangulation: :delaunay_bowyerwatson,
+                 triangulation: :bowyerwatson,
                  voronoi: false
 @shapes = {}
 @show = { delaunay: true, circle: true, point: true, voronoi: false, center: false }
@@ -372,6 +387,15 @@ set_colors
 start_gui
 listen_for_events
 
-Tk.mainloop
+gui_thread = Thread.new { Tk.mainloop }
+
+sleep DELAY
+
+@points.each do |p|
+  puts "#{p.x}, #{p.y}"
+  left_click p
+end
+
+gui_thread.join
 
 # end

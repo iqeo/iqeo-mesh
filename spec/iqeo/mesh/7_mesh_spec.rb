@@ -4,7 +4,7 @@ describe 'Mesh' do
 
   before :all do
     @height = 1000
-    @width  = 2000
+    @width  = 1000
     # container box points
     @pcb0 = Iqeo::Mesh::Point.new 0, 0
     @pcb1 = Iqeo::Mesh::Point.new 0, @height
@@ -56,6 +56,8 @@ describe 'Mesh' do
     @posc1 = Iqeo::Mesh::Point.new 28, 28
     @posc2 = Iqeo::Mesh::Point.new 12, 12
     @points_outside_single_collinear = [ @posc0, @posc1, @posc2 ]
+    # square grid of points
+    @square_grid = 9.times.inject([]) { |a,x| a = a + 9.times.collect { |y| Iqeo::Mesh::Point.new (x+1)*100, (y+1)*100 } }
   end
 
   context 'initialization' do
@@ -373,12 +375,24 @@ describe 'Mesh' do
         end
 
         it 'for small triangle and points outside' do
+          pending 'passing with square grid of points'
           mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :bowyerwatson, container: :box
           ( @triangle_points + @points_outside_single_collinear ).each do |point|
             mesh.add_point_at point.x, point.y
             mesh.check?.should be_true
             mesh.should be_delaunay
           end
+        end
+
+      end
+
+      it 'with square grid of points (collinear and 4 points on circumcircle)' do
+        mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :bowyerwatson, container: :box
+        @square_grid.each do |point|
+          puts "#{point.x},#{point.y}"
+          mesh.add_point_at point.x, point.y
+          mesh.check?.should be_true
+          mesh.should be_delaunay
         end
 
       end
