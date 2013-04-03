@@ -55,6 +55,14 @@ class DirectedEdge
     clockwise? [ @start, @finish, point ]
   end
 
+  def collinear? point
+    @edge.collinear? point
+  end
+
+  def contains? point
+    @edge.contains? point
+  end
+
   def check
     res = {}
     res[:edge_okay] = @edge.check?

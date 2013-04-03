@@ -40,7 +40,8 @@ class Edge
   end
 
   def contains? point
-    false
+    return false unless collinear? point
+    point.x.between?( points[0].x, points[1].x ) && point.y.between?( points[0].y, points[1].y )
   end
 
   def check

@@ -11,6 +11,9 @@ describe 'DirectedEdge' do
     @edge1       = Iqeo::Mesh::Edge.new @point2, @point3
     @point_right = Iqeo::Mesh::Point.new 200, 500
     @point_left  = Iqeo::Mesh::Point.new 200, 100
+    @point_collinear = Iqeo::Mesh::Point.new 500, 600
+    @point_non_collinear = Iqeo::Mesh::Point.new 500, 650
+    @point_contained = Iqeo::Mesh::Point.new 200, 300
   end
 
   it 'accepts single edge' do
@@ -75,11 +78,28 @@ describe 'DirectedEdge' do
   end
 
   it 'can check a point is collinear' do
-    pending 'edge can check a point is collinear'
+    de = Iqeo::Mesh::DirectedEdge.new @edge0
+    de.collinear?( @point_collinear ).should be_true
   end
 
-  it 'can check a collinear point is contained' do
-    pending 'edge can check a collinear point is contained'
+  it 'can check a point is non collinear' do
+    de = Iqeo::Mesh::DirectedEdge.new @edge0
+    de.collinear?( @point_non_collinear ).should be_false
+  end
+
+  it 'can check a point is contained' do
+    de = Iqeo::Mesh::DirectedEdge.new @edge0
+    de.contains?( @point_contained ).should be_true
+  end
+
+  it 'can check a collinear point is not contained' do
+    de = Iqeo::Mesh::DirectedEdge.new @edge0
+    de.contains?( @point_collinear ).should be_false
+  end
+
+  it 'can check a non collinear point is not contained' do
+    de = Iqeo::Mesh::DirectedEdge.new @edge0
+    de.contains?( @point_non_collinear ).should be_false
   end
 
   it 'can check self for consistency' do

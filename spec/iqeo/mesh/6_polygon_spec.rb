@@ -19,6 +19,16 @@ describe 'Polygon' do
     @de1 = Iqeo::Mesh::DirectedEdge.new @edge1
     @de2 = Iqeo::Mesh::DirectedEdge.new @edge2
     @triangle_directed_edges = [ @de0, @de1, @de2 ]
+    # points collinear with triangle edges
+    @pcol0 = Iqeo::Mesh::Point.new 40, 30
+    @pcol1 = Iqeo::Mesh::Point.new 0, 35
+    @pcol2 = Iqeo::Mesh::Point.new 25, 0
+    @edge_collinear_points = [ @pcol0, @pcol1, @pcol2 ]
+    # points contained on triangle edges
+    @pcon0 = Iqeo::Mesh::Point.new 25, 15
+    @pcon1 = Iqeo::Mesh::Point.new 20, 25
+    @pcon2 = Iqeo::Mesh::Point.new 15, 20
+    @edge_contained_points = [ @pcon0, @pcon1, @pcon2 ]
     # triangle point sequences
     @triangles_clockwise     = [ [ @pt0, @pt1, @pt2 ], [ @pt1, @pt2, @pt0 ], [ @pt2, @pt0, @pt1 ] ]
     @triangles_anticlockwise = [ [ @pt0, @pt2, @pt1 ], [ @pt1, @pt0, @pt2 ], [ @pt2, @pt1, @pt0 ] ]
@@ -145,12 +155,18 @@ describe 'Polygon' do
       @points_outside_circumcircle.each { |point| @poly.circumcircle_contains(point).should be_false }
     end
 
-    it 'outside aligned' do
-      pending 'directededge detects aligned point'
+    it 'outside when collinear non contained with edge' do
+      @edge_collinear_points.each do |point|
+        @poly.directed_edges.any? { |de| de.collinear? point }.should be_true
+        @poly.outside?(point).should be_true
+      end
     end
 
-    it 'inside on edge' do
-      pending 'directededge detects contained point'
+    it 'inside when collinear contained on edge' do
+      @edge_contained_points.each do |point|
+        @poly.directed_edges.any? { |de| de.contains? point }.should be_true
+        @poly.inside?(point).should be_true
+      end
     end
 
   end
