@@ -155,7 +155,7 @@ describe 'Polygon' do
       @points_outside_circumcircle.each { |point| @poly.circumcircle_contains(point).should be_false }
     end
 
-    it 'outside when collinear non contained with edge' do
+    it 'outside when collinear not contained on edge' do
       @edge_collinear_points.each do |point|
         @poly.directed_edges.any? { |de| de.collinear? point }.should be_true
         @poly.outside?(point).should be_true

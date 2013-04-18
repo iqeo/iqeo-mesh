@@ -324,7 +324,7 @@ describe 'Mesh' do
         pending 'raising exception on collinear points is BS! make it work'
         mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :bowyerwatson, container: :box
         @triangle_points.each { |point| mesh.add_point_at point.x, point.y }
-        expect { mesh.add_point_at @point_collinear0.x, @point_collinear0.y }.to raise_error RuntimeError, 'point is not inside a triangle'
+        expect { mesh.add_point_at @point_collinear0.x, @point_collinear0.y }.to_not raise_error #RuntimeError, 'point is not inside a triangle'
       end
 
     end

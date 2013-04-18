@@ -50,7 +50,11 @@ class Polygon
 
   def inside? point
     # inside point is right of all directed edges
-    @directed_edges.all? { |de| de.right? point }
+    @directed_edges.all? do |de|
+      r = de.right?(point)
+      c = de.contains?(point)
+      r || c
+    end
   end
 
   def edges_visible_to_outside_point point
