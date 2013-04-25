@@ -10,7 +10,7 @@ WIDTH = 1000
 HEIGHT = 1000
 XOFF = 1
 YOFF = 1
-DELAY = 0.2
+DELAY = 0.1
 POINT_RADIUS = 3
 CENTER_RADIUS = 3
 EDGE_WIDTH = 1
@@ -102,7 +102,7 @@ def left_click e
   @hover_triangle = nil # prevent redrawing this triangle & circle when removing hover highlight after mesh processing
   @mesh.add_point_at e.x, e.y
   ( raise 'Bad mesh'     unless @mesh.check?    ) if CHECK_MESH
-  ( raise 'Not delaunay' unless @mesh.delaunay? ) if CHECK_DELAUNAY
+  @mesh.delaunay? if CHECK_DELAUNAY
 end
 
 def right_click e

@@ -103,6 +103,7 @@ class Mesh
   def triangle_containing point
     # todo: accept triangle to start search at and traverse triangles in direction of point
     # todo: or.. use a tree to track mesh triangle splits then descend from root to leaf triangle
+    # using detect because if point is on an edge we only want to pick one triangle
     @triangles.detect { |t| t.inside? point }
   end
 
@@ -121,7 +122,7 @@ class Mesh
       @triangles += new_triangles
       notify :bowyerwatson_split, new_triangles
     else
-      # todo: this can happen for point on or aligned with a triangle's edge (collinear with edge points)
+      # can only happen if point is way out of bounds, or ???
       raise "point #{point.x},#{point.y} is not inside a triangle"
     end
   end
