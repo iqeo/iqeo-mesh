@@ -18,8 +18,8 @@ EDGE_WIDTH = 1
 def start_gui
 
   @root = TkRoot.new do
-    title 'Experiment'
-    geometry '1000x1000'
+    title 'Iqeo::Mesh demo'
+    geometry '1200x1200'
   end
 
   @button_hover = TkCheckButton.new(@root) do
@@ -101,7 +101,7 @@ def left_click e
   @label[:text] = "Add point: #{e.x},#{e.y}"
   @hover_triangle = nil # prevent redrawing this triangle & circle when removing hover highlight after mesh processing
   @mesh.add_point_at e.x, e.y
-  ( raise 'Bad mesh'     unless @mesh.check?    ) if CHECK_MESH
+  @mesh.check? if CHECK_MESH
   @mesh.delaunay? if CHECK_DELAUNAY
 end
 
@@ -280,9 +280,9 @@ end
 def delaunay_fail failures
   failures.each do |triangle,points|
     draw_polygon triangle, options(:delaunay, :fill => @color.failure, :width => 3)
-    draw_circumcircle triangle, options(:circle, :outline => @color.failure_circle)
-    draw_center triangle, options(:center, :outline => @color.failure_center)
-    points.each { |p| draw_point p, options(:point, :fill => @color.added_point) }
+    draw_circumcircle triangle, options(:circle, :outline => @color.failure)
+    draw_center triangle, options(:center, :outline => @color.failure)
+    points.each { |p| draw_point p, options(:point, :fill => @color.failure) }
   end
 end
 

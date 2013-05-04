@@ -59,7 +59,10 @@ def tell_point point
   tell_poly_relations point
 end
 
-puts '--- edge contained points ---'
-@edge_contained_points.each { |point| tell_point point }
-puts '--- edge collinear points ---'
-@edge_collinear_points.each { |point| tell_point point }
+#puts '--- edge contained points ---'
+#@edge_contained_points.each { |point| tell_point point }
+#puts '--- edge collinear points ---'
+#@edge_collinear_points.each { |point| tell_point point }
+@point_collinear0 = Iqeo::Mesh::Point.new 0, 40
+tell_point @point_collinear0
+

@@ -5,9 +5,9 @@ class Polygon
 
   include PointUtilities
 
-  PRECISION = 8
+  FUDGE = 0.000001
 
-  attr_reader :points, :directed_edges, :radius2, :center, :center_exact_x, :center_exact_y
+  attr_reader :points, :directed_edges, :radius2, :radius2_fudged, :center, :center_exact_x, :center_exact_y
 
   def initialize mesh, pointy_things
     # fix: initializes for 3 points only due to clockwise, extend to n points
@@ -129,15 +129,16 @@ class Polygon
     ux = ( c.y * b2 - b.y * c2 ) / d.to_f # division in floating point for precise circumcircle center and radius
     uy = ( b.x * c2 - c.x * b2 ) / d.to_f # division in floating point for precise circumcircle center and radius
     # calculate radius squared while we're still at origin
-    @radius2 = ( ux**2 + uy**2 ).round PRECISION
+    @radius2 = ( ux**2 + uy**2 )
+    @radius2_fudged = @radius2 - FUDGE
     # translate back to actual circumcenter
-    @center_exact_x = ( ux+a.x ).round PRECISION
-    @center_exact_y = ( uy+a.y ).round PRECISION
+    @center_exact_x = ( ux+a.x )
+    @center_exact_y = ( uy+a.y )
     @center = Point.new @center_exact_x.to_i, @center_exact_y.to_i
   end
 
   def circumcircle_contains point
-    ( ( point.x - @center_exact_x ) **2 + ( point.y - @center_exact_y ) **2 ).round( PRECISION ) < @radius2
+    ( ( ( point.x - @center_exact_x ) ** 2 ) + ( ( point.y - @center_exact_y ) **2 ) ) < @radius2_fudged
   end
 
   def check

@@ -49,7 +49,6 @@ describe 'Mesh' do
     @pl1 = Iqeo::Mesh::Point.new 60, 70
     @pl2 = Iqeo::Mesh::Point.new 70, 80
     @collinear_points = [ @pl0, @pl1, @pl2 ]
-    @point_collinear0 = Iqeo::Mesh::Point.new 0, 40
     # points inside triangle, with collinear points
     @pic0 = Iqeo::Mesh::Point.new 16, 16
     @pic1 = Iqeo::Mesh::Point.new 18, 18
@@ -62,6 +61,12 @@ describe 'Mesh' do
     @points_outside_single_collinear = [ @posc0, @posc1, @posc2 ]
     # square grid of points
     @square_grid = 6.times.inject([]) { |a,x| a = a + 6.times.collect { |y| Iqeo::Mesh::Point.new (x+1)*100, (y+1)*100 } }
+    # points on bounding box
+    @bp0 = Iqeo::Mesh::Point.new    0,  100
+    @bp1 = Iqeo::Mesh::Point.new  100,    0
+    @bp2 = Iqeo::Mesh::Point.new 1000,  200
+    @bp3 = Iqeo::Mesh::Point.new  200, 1000
+    @box_points = [ @bp0, @bp1, @bp2, @bp3 ]
   end
 
   context 'initialization' do
@@ -325,7 +330,6 @@ describe 'Mesh' do
       end
 
       it 'does not raise exception for small triangle and collinear points' do
-        pending "why was this failing 'check' with @point_collinear0 ???"
         mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :bowyerwatson, container: :box
         @triangle_points.each { |point| mesh.add_point_at point.x, point.y }
         @collinear_points.each do |point|
@@ -395,12 +399,19 @@ describe 'Mesh' do
       it 'with square grid of points (collinear and 4 points on circumcircle)' do
         mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :bowyerwatson, container: :box
         @square_grid.each do |point|
-          puts "#{point.x},#{point.y}"
           mesh.add_point_at point.x, point.y
           mesh.check?.should be_true
           mesh.should be_delaunay
         end
+      end
 
+      it 'with points on bounding box and pushing fp precision in poly.circumcircle_contains' do
+        mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :bowyerwatson, container: :box
+        @box_points.each do |point|
+          mesh.add_point_at point.x, point.y
+          mesh.should be_check
+          mesh.should be_delaunay
+        end
       end
 
     end
