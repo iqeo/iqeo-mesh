@@ -117,12 +117,13 @@ class Mesh
     if triangle
       notify :bowyerwatson_hole, triangle
       @triangles.delete triangle
+      bowyerwatson_boundary_special_case triangle, point
       hole, _ = bowyerwatson_neighbor_recursion triangle, point
       new_triangles = hole.split( point )
       @triangles += new_triangles
       notify :bowyerwatson_split, new_triangles
     else
-      # can only happen if point is way out of bounds, or ???
+      # should only happen if point is out of bounds or something is terribly wrong with the mesh
       raise "point #{point.x},#{point.y} is not inside a triangle"
     end
   end
@@ -141,6 +142,15 @@ class Mesh
     ab2 = add_point( Point.new( 0, @height) )
     b   = add_point( Point.new( @width, @height) )
     [ Polygon.new( self, [ a, ab1, ab2 ] ), Polygon.new( self, [ b, ab1, ab2 ] ) ]
+  end
+
+  def bowyerwatson_boundary_special_case triangle, point
+    # delete initial edge if point falls on a boundary edge (for mesh consistency)
+    if triangle.neighbors.size < 3 &&
+      ( boundary_edges = triangle.edges.select { |e| e.polygons.size == 1 } ) &&
+      ( edge_containing_point = boundary_edges.detect { |e| e.contains? point } )
+      @edges.delete edge_containing_point
+    end
   end
 
   def bowyerwatson_neighbor_recursion triangle, point, hole = triangle, tested = []

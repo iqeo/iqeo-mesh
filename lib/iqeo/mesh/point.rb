@@ -28,6 +28,10 @@ class Point
     hash <=> other.hash
   end
 
+  def to_s
+    "#{@x},#{@y}"
+  end
+
 end
 
 end

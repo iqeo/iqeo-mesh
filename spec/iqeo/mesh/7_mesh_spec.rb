@@ -191,9 +191,9 @@ describe 'Mesh' do
 
   it 'checks self for consistency' do
     mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :simple
-    mesh.check?.should be_true
+    mesh.should be_check
     @triangle_points.each { |point| mesh.add_point_at point.x, point.y }
-    mesh.check?.should be_true
+    mesh.should be_check
   end
 
   context 'simple triangulation' do
@@ -204,7 +204,7 @@ describe 'Mesh' do
       mesh.points.size.should eq 3
       mesh.edges.size.should eq 3
       mesh.triangles.size.should eq 1
-      mesh.check?.should be_true
+      mesh.should be_check
     end
 
     it 'can be specified' do
@@ -213,7 +213,7 @@ describe 'Mesh' do
       mesh.points.size.should eq 3
       mesh.edges.size.should eq 3
       mesh.triangles.size.should eq 1
-      mesh.check?.should be_true
+      mesh.should be_check
     end
 
     context 'adds points' do
@@ -227,7 +227,7 @@ describe 'Mesh' do
           mesh.triangles.size.should eq ( 1 + ( ( i + 1 ) * 2 ) )                  # 1 -> 3 -> 5 -> 7 triangles
           mesh.triangles.select { |t| t.points.include? point }.size.should eq 3  # always 3 triangles centered around new point
         end
-        mesh.check?.should be_true
+        mesh.should be_check
       end
 
       context 'outside triangle' do
@@ -240,7 +240,7 @@ describe 'Mesh' do
             mesh.add_point_at point.x, point.y
             mesh.triangles.size.should eq ( i + 2 )
           end
-          mesh.check?.should be_true
+          mesh.should be_check
         end
 
         it 'with multiple edges visible' do
@@ -252,7 +252,7 @@ describe 'Mesh' do
             mesh.triangles.size.should eq ( 1 + ( ( i + 1 ) * 2 ) )  # 1 -> 3 -> 5 -> 7 triangles
             mesh.hull.points.size.should eq 3                        # hull stays a triangle as each vertex is extended to new point
           end
-          mesh.check?.should be_true
+          mesh.should be_check
         end
 
       end
@@ -288,7 +288,7 @@ describe 'Mesh' do
         mesh.add_point_at @pt0.x, @pt0.y
         mesh.triangles.size.should eq 4
         mesh.points.should eq ( @container_box_points + [ @pt0 ] ).to_set
-        mesh.check?.should be_true
+        mesh.should be_check
       end
 
       it 'accepts container box' do
@@ -298,7 +298,7 @@ describe 'Mesh' do
         mesh.add_point_at @pt0.x, @pt0.y
         mesh.triangles.size.should eq 4
         mesh.points.should eq ( @container_box_points + [ @pt0 ] ).to_set
-        mesh.check?.should be_true
+        mesh.should be_check
       end
 
       it 'accepts container triangle' do
@@ -308,7 +308,7 @@ describe 'Mesh' do
         mesh.add_point_at @pt0.x, @pt0.y
         mesh.triangles.size.should eq 3
         mesh.points.should eq ( @container_triangle_points + [ @pt0 ] ).to_set
-        mesh.check?.should be_true
+        mesh.should be_check
       end
 
     end
@@ -319,14 +319,14 @@ describe 'Mesh' do
         mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :bowyerwatson, container: :box
         @triangle_points.each { |point| mesh.add_point_at point.x, point.y }
         mesh.triangles.size.should eq 8
-        mesh.check?.should be_true
+        mesh.should be_check
       end
 
       it 'of a small triangle in container triangle' do
         mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :bowyerwatson, container: :triangle
         @triangle_points.each { |point| mesh.add_point_at point.x, point.y }
         mesh.triangles.size.should eq 7
-        mesh.check?.should be_true
+        mesh.should be_check
       end
 
       it 'does not raise exception for small triangle and collinear points' do
@@ -347,7 +347,7 @@ describe 'Mesh' do
         mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :bowyerwatson, container: :box
         @triangle_points.each do |point|
           mesh.add_point_at point.x, point.y
-          mesh.check?.should be_true
+          mesh.should be_check
           mesh.should be_delaunay
         end
       end
@@ -358,7 +358,7 @@ describe 'Mesh' do
           mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :bowyerwatson, container: :box
           ( @triangle_points + @points_inside_triangle ).each do |point|
             mesh.add_point_at point.x, point.y
-            mesh.check?.should be_true
+            mesh.should be_check
             mesh.should be_delaunay
           end
         end
@@ -367,7 +367,7 @@ describe 'Mesh' do
           mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :bowyerwatson, container: :box
           ( @triangle_points + @points_outside_single ).each do |point|
             mesh.add_point_at point.x, point.y
-            mesh.check?.should be_true
+            mesh.should be_check
             mesh.should be_delaunay
           end
         end
@@ -400,14 +400,15 @@ describe 'Mesh' do
         mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :bowyerwatson, container: :box
         @square_grid.each do |point|
           mesh.add_point_at point.x, point.y
-          mesh.check?.should be_true
+          mesh.should be_check
           mesh.should be_delaunay
         end
       end
 
-      it 'with points on bounding box and pushing fp precision in poly.circumcircle_contains' do
+      it 'with points on bounding box and pushing FP precision in Poly#circumcircle_contains' do
+        require 'awesome_print'
         mesh = Iqeo::Mesh::Mesh.new @width, @height, triangulation: :bowyerwatson, container: :box
-        @box_points.each do |point|
+        [@box_points[0]].each do |point|
           mesh.add_point_at point.x, point.y
           mesh.should be_check
           mesh.should be_delaunay

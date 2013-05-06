@@ -49,12 +49,15 @@ class Edge
     res[:two_points] = @points.size == 2
     res[:nonzero_length] = @points[0] != @points[1]
     res[:two_polygons_max] = @polygons.size <= 2
-    # no check for polygon uniqueness: @polygons is a set, so they must not be the same
     res
   end
 
   def check?
     ! check.values.include? false
+  end
+
+  def to_s
+    "#{@points[0]}-#{@points[1]}"
   end
 
 end

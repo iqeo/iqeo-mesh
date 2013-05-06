@@ -10,7 +10,7 @@ class Polygon
   attr_reader :points, :directed_edges, :radius2, :radius2_fudged, :center, :center_exact_x, :center_exact_y
 
   def initialize mesh, pointy_things
-    # fix: initializes for 3 points only due to clockwise, extend to n points
+    # todo: initializes for 3 points only due to clockwise, extend to n points
     @mesh = mesh
     @points = clockwise unique_points pointy_things
     raise 'points are collinear' if @points.nil?
@@ -179,6 +179,10 @@ class Polygon
       DirectedEdge.new( @mesh.new_or_existing_edge( Edge.new( point, finish ) ), point )
     ]
     insert_directed_edges directed_edge_after_break, directed_edges_to_insert
+  end
+
+  def to_s
+    @directed_edges.join '/'
   end
 
 end

@@ -74,6 +74,10 @@ class DirectedEdge
     ! check.values.include? false
   end
 
+  def to_s
+    "#{@start}>#{@finish}"
+  end
+
 end
 
 end
