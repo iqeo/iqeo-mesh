@@ -122,7 +122,14 @@ describe 'Polygon' do
     # fix: make tests independent
     # keep this test near top as poly tests below will add > 2 polys to @edge?s, this will not happen with a single @Mesh
     @poly = Iqeo::Mesh::Polygon.new @mesh, @triangle_points
-    @poly.check?.should be_true
+    @poly.should be_consistent
+  end
+
+  it 'prints nicely' do
+    @poly = Iqeo::Mesh::Polygon.new @mesh, @triangle_points
+    directed_edges = @poly.directed_edges
+    ders = directed_edges.collect { |de| /#{de.start.x}.*#{de.start.y}.*#{de.finish.x}.*#{de.finish.y}/ }
+    @poly.to_s.should match( /^.*#{ders[0]}.*#{ders[1]}.*#{ders[2]}.*$/ )
   end
 
   context 'detects points are' do
@@ -179,19 +186,19 @@ describe 'Polygon' do
 
     it 'raises exception if point is not outside' do
       @points_inside_triangle.each do |point|
-        expect { @poly.directed_edges_visible_to_outside_point( point ) }.to raise_error
+        expect { @poly.directed_edges_visible( point ) }.to raise_error
       end
     end
 
     it 'detects single directed_edge visible' do
       @points_outside_single.each do |point|
-        @poly.directed_edges_visible_to_outside_point( point ).should eq @single_directed_edges_visible[ point ]
+        @poly.directed_edges_visible( point ).should eq @single_directed_edges_visible[ point ]
       end
     end
 
     it 'detects multiple directed_edge visible' do
       @points_outside_multiple.each do |point|
-        @poly.directed_edges_visible_to_outside_point( point ).should eq @multiple_directed_edges_visible[ point ]
+        @poly.directed_edges_visible( point ).should eq @multiple_directed_edges_visible[ point ]
       end
     end
 
@@ -204,18 +211,18 @@ describe 'Polygon' do
     end
 
     it 'raises exception if point is not outside' do
-      expect { @poly.edges_visible_to_outside_point( @point_inside ) }.to raise_error
+      expect { @poly.edges_visible( @point_inside ) }.to raise_error
     end
 
     it 'detects single edge visible' do
       @points_outside_single.each do |point|
-        @poly.edges_visible_to_outside_point( point ).should eq @single_edges_visible[ point ]
+        @poly.edges_visible( point ).should eq @single_edges_visible[ point ]
       end
     end
 
     it 'detects multiple edge visible' do
       @points_outside_multiple.each do |point|
-        @poly.edges_visible_to_outside_point( point ).should eq @multiple_edges_visible[ point ]
+        @poly.edges_visible( point ).should eq @multiple_edges_visible[ point ]
       end
     end
 

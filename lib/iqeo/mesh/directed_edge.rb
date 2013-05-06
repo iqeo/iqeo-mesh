@@ -63,15 +63,15 @@ class DirectedEdge
     @edge.contains? point
   end
 
-  def check
+  def consistency
     res = {}
-    res[:edge_okay] = @edge.check?
+    res[:edge_okay] = @edge.consistent?
     res[:edge_points_match_directed_edge] = ( @edge.points.include?( @start ) && @edge.points.include?( @finish ) )
     res
   end
 
-  def check?
-    ! check.values.include? false
+  def consistent?
+    ! consistency.values.include? false
   end
 
   def to_s

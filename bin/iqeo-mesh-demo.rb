@@ -101,7 +101,7 @@ def left_click e
   @label[:text] = "Add point: #{e.x},#{e.y}"
   @hover_triangle = nil # prevent redrawing this triangle & circle when removing hover highlight after mesh processing
   @mesh.add_point_at e.x, e.y
-  @mesh.check? if CHECK_MESH
+  @mesh.consistent? if CHECK_MESH
   @mesh.delaunay? if CHECK_DELAUNAY
 end
 

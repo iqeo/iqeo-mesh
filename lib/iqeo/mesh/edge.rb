@@ -44,7 +44,7 @@ class Edge
     point.x.between?( *[points[0].x, points[1].x].minmax ) && point.y.between?( *[points[0].y, points[1].y].minmax )
   end
 
-  def check
+  def consistency
     res = {}
     res[:two_points] = @points.size == 2
     res[:nonzero_length] = @points[0] != @points[1]
@@ -52,8 +52,8 @@ class Edge
     res
   end
 
-  def check?
-    ! check.values.include? false
+  def consistent?
+    ! consistency.values.include? false
   end
 
   def to_s

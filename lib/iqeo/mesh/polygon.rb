@@ -59,11 +59,11 @@ class Polygon
     end
   end
 
-  def edges_visible_to_outside_point point
-    directed_edges_visible_to_outside_point( point ).collect(&:edge)
+  def edges_visible point
+    directed_edges_visible( point ).collect(&:edge)
   end
 
-  def directed_edges_visible_to_outside_point point
+  def directed_edges_visible point
     raise 'point is not outside' unless outside? point
     # returns [directed edges...] for outside point, [] for inside point
     # visible directed edges (v) are a single contiguous group (...vvv...) but may wrap around (vvv...vvv) the edge list
@@ -76,11 +76,11 @@ class Polygon
     visible_directed_edges_tail + visible_directed_edges_head
   end
 
-  def expand point, directed_edges_visible = nil
-    directed_edges_visible = directed_edges_visible_to_outside_point point unless directed_edges_visible
-    expansion_start_point = directed_edges_visible.first.start
-    expansion_finish_point = directed_edges_visible.last.finish
-    remove_section directed_edges_visible
+  def expand point, directed_edges = nil
+    directed_edges = directed_edges_visible point unless directed_edges
+    expansion_start_point = directed_edges.first.start
+    expansion_finish_point = directed_edges.last.finish
+    remove_section directed_edges
     insert_point_between expansion_start_point, point, expansion_finish_point
   end
 
@@ -141,17 +141,21 @@ class Polygon
     ( ( ( point.x - @center_exact_x ) ** 2 ) + ( ( point.y - @center_exact_y ) **2 ) ) < @radius2_fudged
   end
 
-  def check
+  def consistency
     res = {}
     des = @directed_edges
-    res[:directed_edges_okay] = ! des.detect { |de| ! de.check? }
+    res[:directed_edges_okay] = ! des.detect { |de| ! de.consistent? }
     res[:directed_edges_enclose] = des[0].start == des[2].finish && des[1].start == des[0].finish && des[2].start == des[1].finish
     # todo: directed_edges_clockwise , points_okay ?, points_consistent
     res
   end
 
-  def check?
-    ! check.values.include? false
+  def consistent?
+    ! consistency.values.include? false
+  end
+
+  def to_s
+    @directed_edges.join '/'
   end
 
   private
@@ -179,10 +183,6 @@ class Polygon
       DirectedEdge.new( @mesh.new_or_existing_edge( Edge.new( point, finish ) ), point )
     ]
     insert_directed_edges directed_edge_after_break, directed_edges_to_insert
-  end
-
-  def to_s
-    @directed_edges.join '/'
   end
 
 end

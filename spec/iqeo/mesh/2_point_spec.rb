@@ -18,6 +18,11 @@ describe 'Point' do
     point.y.should eq 200
   end
 
+  it 'prints nicely' do
+    point = Iqeo::Mesh::Point.new @x0, @y0
+    point.to_s.should match( /^.*#{@x0}.*#{@y0}.*$/ )
+  end
+
   it 'is equivalent with identical coordinates' do
     point0 = Iqeo::Mesh::Point.new @x0, @y0
     point1 = Iqeo::Mesh::Point.new @x0, @y0

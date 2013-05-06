@@ -20,6 +20,11 @@ describe 'Edge' do
     edge.polygons.empty?.should be_true
   end
 
+  it 'prints nicely' do
+    edge = Iqeo::Mesh::Edge.new @point0, @point1
+    edge.to_s.should match( /^.*#{@point0.x}.*#{@point0.y}.*#{@point1.x}.*#{@point1.y}.*$/ )
+  end
+
   it 'is comparable' do
     edge0 = Iqeo::Mesh::Edge.new @point0, @point1
     edge1 = Iqeo::Mesh::Edge.new @point1, @point0
@@ -46,7 +51,7 @@ describe 'Edge' do
 
   it 'can check self for consistency' do
     edge0 = Iqeo::Mesh::Edge.new @point0, @point1
-    edge0.check?.should be_true
+    edge0.consistent?.should be_true
   end
 
   it 'can check a point is collinear' do

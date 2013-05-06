@@ -40,6 +40,11 @@ describe 'DirectedEdge' do
     expect { Iqeo::Mesh::DirectedEdge.new @edge0, @point2 }.to raise_error
   end
 
+  it 'prints nicely' do
+    directed_edge = Iqeo::Mesh::DirectedEdge.new @edge0
+    directed_edge.to_s.should match( /^.*#{directed_edge.start.x}.*#{directed_edge.start.y}.*#{directed_edge.finish.x}.*#{directed_edge.finish.y}.*$/ )
+  end
+
   it 'is comparable' do
     de0 = Iqeo::Mesh::DirectedEdge.new @edge0
     de1 = Iqeo::Mesh::DirectedEdge.new @edge0
@@ -104,7 +109,7 @@ describe 'DirectedEdge' do
 
   it 'can check self for consistency' do
     directed_edge = Iqeo::Mesh::DirectedEdge.new @edge0
-    directed_edge.check?.should be_true
+    directed_edge.consistent?.should be_true
   end
 
 end

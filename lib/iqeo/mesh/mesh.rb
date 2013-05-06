@@ -91,12 +91,12 @@ class Mesh
       new_triangles.each { |t| @triangles.add t }
     when :outside
       # create triangles between point and visible edges
-      directed_edges_visible_to_outside_point = @hull.directed_edges_visible_to_outside_point point
-      directed_edges_visible_to_outside_point.collect(&:edge).each do |edge|
+      directed_edges_visible = @hull.directed_edges_visible point
+      directed_edges_visible.collect(&:edge).each do |edge|
         triangle = Polygon.new self, [ edge, point ]
         @triangles.add triangle
       end
-      @hull.expand point, directed_edges_visible_to_outside_point
+      @hull.expand point, directed_edges_visible
     end
   end
 
@@ -185,31 +185,26 @@ class Mesh
     delaunay_test.empty?
   end
 
-  def check_mesh
-    @check = {}
-    @check[:edges_okay] = ! @edges.detect { |e| ! e.check? }
-    @check[:triangles_okay] = ! @triangles.detect { |t| ! t.check? }
-    @check[:edges_consistent] = @edges == @triangles.collect(&:edges).flatten.to_set
-    # todo: points_okay ? points_consistent
-    @check
+  def consistency
+    consistent = {}
+    consistent[:edges_okay] = ! @edges.detect { |e| ! e.consistent? }
+    consistent[:triangles_okay] = ! @triangles.detect { |t| ! t.consistent? }
+    consistent[:edges_consistent] = @edges == @triangles.collect(&:edges).flatten.to_set
+    # todo: points_consistent
+    consistent
   end
 
-  def check?
-    ! check_mesh.values.include? false
+  def consistent?
+    # fix: .consistent? reads terribly specially in rspec ( .should be_consistent .. yuck! )- change to .consistent?
+    ! consistency.values.include? false
   end
 
   def voronoi point
-    # todo: this is a naive approach, can do something much more efficient within bowyerwatson
-    triangles = @triangles.select { |t| t.points.include? point }
-    # todo : order triangles by neighbor - not needed because Polygon.new will order points clockwise ?
-    #ordered = [ triangles.shift ]
-    #until triangles.empty?
-    #  triangles = triangles - ordered
-    #  triangles.each_with_object(ordered) { |t, ot| ot << t if t.neighbors.include? ot.last }
-    #end
-    # fix: Polygon.new will fail for > 3 points, extend it to work!
-    cell = Polygon.new @voronoi, triangles.collect(&:center)
-    @voronoi.cells << cell
+    ## todo: this is a naive approach, can do something much more efficient within bowyerwatson
+    #triangles = @triangles.select { |t| t.points.include? point }
+    ## fix: Polygon.new will fail for > 3 points, extend it to work!
+    #cell = Polygon.new @voronoi, triangles.collect(&:center)
+    #@voronoi.cells << cell
   end
 
 end
