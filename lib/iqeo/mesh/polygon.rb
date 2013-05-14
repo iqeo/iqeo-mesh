@@ -10,10 +10,9 @@ class Polygon
   attr_reader :points, :directed_edges, :radius2, :radius2_fudged, :center, :center_exact_x, :center_exact_y
 
   def initialize mesh, pointy_things
-    # todo: initializes for 3 points only due to clockwise, extend to n points
     @mesh = mesh
     @points = clockwise unique_points pointy_things
-    raise 'points are collinear' if @points.nil?
+    raise 'points are collinear' if collinear? @points
     calculate_circumcircle
     @directed_edges = directed_edges_for @points
     update_edges_polygons edges
@@ -113,28 +112,36 @@ class Polygon
   end
 
   def calculate_circumcircle
-    if ( a = @points.detect { |p| p.x == 0 && p.y == 0 } )
-      # triangle already at origin
-      b, c = @points - [ a ]
-    else
-      # translate triangle via first point to origin
-      a = @points[0]
-      b = Point.new @points[1].x-a.x, @points[1].y-a.y
-      c = Point.new @points[2].x-a.x, @points[2].y-a.y
+    if @points.size == 3 || regular?
+      if ( a = @points.detect { |p| p.x == 0 && p.y == 0 } )
+        # triangle already at origin
+        b, c = @points - [ a ]
+      else
+        # translate triangle via first point to origin
+        a = @points[0]
+        b = Point.new @points[1].x-a.x, @points[1].y-a.y
+        c = Point.new @points[2].x-a.x, @points[2].y-a.y
+      end
+      # calculate translated circumcenter with simplified formula for a = 0
+      d = ( b.x * c.y - b.y * c.x ) * 2
+      b2 = b.x**2 + b.y**2
+      c2 = c.x**2 + c.y**2
+      ux = ( c.y * b2 - b.y * c2 ) / d.to_f # division in floating point for precise circumcircle center and radius
+      uy = ( b.x * c2 - c.x * b2 ) / d.to_f # division in floating point for precise circumcircle center and radius
+      # calculate radius squared while we're still at origin
+      @radius2 = ( ux**2 + uy**2 )
+      @radius2_fudged = @radius2 - FUDGE
+      # translate back to actual circumcenter
+      @center_exact_x = ( ux+a.x )
+      @center_exact_y = ( uy+a.y )
+      @center = Point.new @center_exact_x.to_i, @center_exact_y.to_i
     end
-    # calculate translated circumcenter with simplified formula for a = 0
-    d = ( b.x * c.y - b.y * c.x ) * 2
-    b2 = b.x**2 + b.y**2
-    c2 = c.x**2 + c.y**2
-    ux = ( c.y * b2 - b.y * c2 ) / d.to_f # division in floating point for precise circumcircle center and radius
-    uy = ( b.x * c2 - c.x * b2 ) / d.to_f # division in floating point for precise circumcircle center and radius
-    # calculate radius squared while we're still at origin
-    @radius2 = ( ux**2 + uy**2 )
-    @radius2_fudged = @radius2 - FUDGE
-    # translate back to actual circumcenter
-    @center_exact_x = ( ux+a.x )
-    @center_exact_y = ( uy+a.y )
-    @center = Point.new @center_exact_x.to_i, @center_exact_y.to_i
+  end
+
+  def regular?
+    @points.each_cons(3).collect do |points_triplet|
+      cross_product( points_triplet )
+    end.uniq.size == 1
   end
 
   def circumcircle_contains point

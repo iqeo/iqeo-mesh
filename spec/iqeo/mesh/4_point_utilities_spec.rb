@@ -36,34 +36,92 @@ describe 'PointUtilities' do
       [ @p5, @p4, @p3 ] => { clockwise: nil, collinear: true, cross_product: 0 }
     }
 
-    @all_point_combos = @triangle_point_combos.merge @collinear_point_combos
+    @collinear_points_top_left = @p3
+
+    @all_3point_combos = @triangle_point_combos.merge @collinear_point_combos
 
     @unique_points = [ @p0, @p1, @p2, @p3, @p4, @p5 ]
+
+    # polygon points
+    @pp0 = Iqeo::Mesh::Point.new 180, 200
+    @pp1 = Iqeo::Mesh::Point.new 200, 200
+    @pp2 = Iqeo::Mesh::Point.new 220, 220
+    @pp3 = Iqeo::Mesh::Point.new 220, 240
+    @pp4 = Iqeo::Mesh::Point.new 200, 260
+    @pp5 = Iqeo::Mesh::Point.new 180, 260
+    @pp6 = Iqeo::Mesh::Point.new 160, 240
+    @pp7 = Iqeo::Mesh::Point.new 160, 220
+    @polygon_points_clockwise = [ @pp0, @pp1, @pp2, @pp3, @pp4, @pp5, @pp6, @pp7 ]
+    @polygon_points_mixed     = [ @pp1, @pp7, @pp3, @pp6, @pp5, @pp4, @pp0, @pp2 ]
+    @polygon_points_anticlockwise = @polygon_points_clockwise.reverse
+    @barycenter_polygon_points = Iqeo::Mesh::Point.new 190, 230
+
+    # collinear points
+    @pc11 = Iqeo::Mesh::Point.new 100,100
+    @pc22 = Iqeo::Mesh::Point.new 200,200
+    @pc33 = Iqeo::Mesh::Point.new 300,300
+    @pc44 = Iqeo::Mesh::Point.new 400,400
+    @pc55 = Iqeo::Mesh::Point.new 500,500
+    @pc66 = Iqeo::Mesh::Point.new 600,600
+    @pc12 = Iqeo::Mesh::Point.new 100,200
+    @pc21 = Iqeo::Mesh::Point.new 200,100
+    @pc13 = Iqeo::Mesh::Point.new 100,300
+    @pc31 = Iqeo::Mesh::Point.new 300,100
+    @pc14 = Iqeo::Mesh::Point.new 100,400
+    @pc41 = Iqeo::Mesh::Point.new 400,100
+    @pc15 = Iqeo::Mesh::Point.new 100,500
+    @pc51 = Iqeo::Mesh::Point.new 500,100
+    @pc16 = Iqeo::Mesh::Point.new 100,600
+    @pc61 = Iqeo::Mesh::Point.new 600,100
+    @collinear_points_vertical = [ @pc11, @pc21, @pc31, @pc41, @pc51, @pc61 ]
+    @collinear_points_horizontal = [ @pc11, @pc12, @pc13, @pc14, @pc15, @pc16 ]
+    @collinear_points_diagonal = [ @pc11, @pc22, @pc33, @pc44, @pc55, @pc66 ]
 
   end
 
   it 'calculates the cross product of 3 points' do
-    @all_point_combos.each do |points,answer|
+    @all_3point_combos.each do |points,answer|
       cross_product( points ).should eq answer[:cross_product]
     end
   end
 
   it 'tests 3 points are ordered clockwise' do
-    @all_point_combos.each do |points,answer|
+    @all_3point_combos.each do |points,answer|
       clockwise?( points ).should eq answer[:clockwise]
     end
   end
 
+  it 'tests >3 points are ordered clockwise' do
+    clockwise?( @polygon_points_clockwise ).should be_true
+    clockwise?( @polygon_points_anticlockwise ).should be_false
+    clockwise?( @polygon_points_mixed ).should be_false
+  end
+
   it 'tests 3 points are ordered anti-clockwise' do
-    @all_point_combos.each do |points,answer|
+    @all_3point_combos.each do |points,answer|
       anticlockwise?( points ).should eq ( answer[:clockwise].nil? ? nil : ! answer[:clockwise] )
     end
   end
 
+  it 'tests >3 points are ordered anti-clockwise' do
+    anticlockwise?( @polygon_points_anticlockwise ).should be_true
+    anticlockwise?( @polygon_points_clockwise ).should be_false
+    anticlockwise?( @polygon_points_mixed ).should be_false
+  end
+
   it 'tests 3 points are collinear' do
-    @all_point_combos.each do |points,answer|
+    @all_3point_combos.each do |points,answer|
       collinear?( points ).should eq answer[:collinear]
     end
+  end
+
+  it 'tests >3 points are collinear' do
+    collinear?( @polygon_points_clockwise ).should be_false
+    collinear?( @polygon_points_anticlockwise ).should be_false
+    collinear?( @polygon_points_mixed ).should be_false
+    collinear?( @collinear_points_vertical).should be_true
+    collinear?( @collinear_points_horizontal).should be_true
+    collinear?( @collinear_points_diagonal).should be_true
   end
 
   it 'orders 3 points clockwise' do
@@ -73,16 +131,25 @@ describe 'PointUtilities' do
     end
   end
 
-  it 'does not reorder colinear points clockwise' do
+  it 'orders >3 points clockwise' do
+    clockwise( @polygon_points_mixed ).should eq @polygon_points_clockwise
+    clockwise( @polygon_points_anticlockwise ).should eq @polygon_points_clockwise
+  end
+
+  it 'indeterminately orders collinear points clockwise with top-left first' do
     @collinear_point_combos.keys.each do |points|
-      clockwise( points ).should be_nil
+      clockwise( points ).first.should eq @collinear_points_top_left
     end
+  end
+
+  it 'calculates barycenter of points' do
+    barycenter( @polygon_points_mixed ).should eq @barycenter_polygon_points
   end
 
   describe 'reduces collections of pointy things to a set of unique points' do
 
     it 'accepts a collection of points' do
-      unique = unique_points @all_point_combos.keys.flatten
+      unique = unique_points @all_3point_combos.keys.flatten
       unique.should be_an_instance_of Set
       unique.size.should eq @unique_points.size
       @unique_points.each { |point| unique.should include point }

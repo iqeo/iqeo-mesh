@@ -15,9 +15,9 @@ describe 'Polygon' do
     @edge2 = Iqeo::Mesh::Edge.new @pt2, @pt0
     @triangle_edges = [ @edge0, @edge1, @edge2 ]
     # triangle directed edges
-    @de0 = Iqeo::Mesh::DirectedEdge.new @edge0
-    @de1 = Iqeo::Mesh::DirectedEdge.new @edge1
-    @de2 = Iqeo::Mesh::DirectedEdge.new @edge2
+    @de0 = Iqeo::Mesh::DirectedEdge.new @edge0, @edge0.points[0]
+    @de1 = Iqeo::Mesh::DirectedEdge.new @edge1, @edge1.points[0]
+    @de2 = Iqeo::Mesh::DirectedEdge.new @edge2, @edge2.points[0]
     @triangle_directed_edges = [ @de0, @de1, @de2 ]
     # points collinear with triangle edges
     @pcol0 = Iqeo::Mesh::Point.new 40, 30
@@ -58,7 +58,11 @@ describe 'Polygon' do
     @pl0 = Iqeo::Mesh::Point.new 50, 60
     @pl1 = Iqeo::Mesh::Point.new 60, 70
     @pl2 = Iqeo::Mesh::Point.new 70, 80
-    @collinear_points = [ @pl0, @pl1, @pl2 ]
+    @pl3 = Iqeo::Mesh::Point.new 80, 90
+    @pl4 = Iqeo::Mesh::Point.new 90, 100
+    @pl5 = Iqeo::Mesh::Point.new 100, 110
+    @pl6 = Iqeo::Mesh::Point.new 110, 120
+    @collinear_points = [ @pl0, @pl1, @pl2, @pl3, @pl4, @pl5, @pl6 ]
     # points inside circumcircle
     @pic0 = Iqeo::Mesh::Point.new 13, 17
     @pic1 = Iqeo::Mesh::Point.new 26, 14
@@ -75,11 +79,42 @@ describe 'Polygon' do
     @mesh_height = 1000
     @mesh_width  = 2000
     @mesh = Iqeo::Mesh::Mesh.new @mesh_width, @mesh_height
+
+    # regular polygon points
+    @pp0 = Iqeo::Mesh::Point.new 180, 200
+    @pp1 = Iqeo::Mesh::Point.new 200, 200
+    @pp2 = Iqeo::Mesh::Point.new 220, 220
+    @pp3 = Iqeo::Mesh::Point.new 220, 240
+    @pp4 = Iqeo::Mesh::Point.new 200, 260
+    @pp5 = Iqeo::Mesh::Point.new 180, 260
+    @pp6 = Iqeo::Mesh::Point.new 160, 240
+    @pp7 = Iqeo::Mesh::Point.new 160, 220
+    @polygon_points = [ @pp0, @pp1, @pp2, @pp3, @pp4, @pp5, @pp6, @pp7 ]
+    @polygon_points_mixed = [ @pp0, @pp2, @pp4, @pp7, @pp5, @pp6, @pp3, @pp1 ]
+    @polygon_center = Iqeo::Mesh::Point.new 190,230
+    @polygon_radius2 = 1000
+    @pe01 = Iqeo::Mesh::Edge.new @pp0, @pp1
+    @pe12 = Iqeo::Mesh::Edge.new @pp1, @pp2
+    @pe23 = Iqeo::Mesh::Edge.new @pp2, @pp3
+    @pe34 = Iqeo::Mesh::Edge.new @pp3, @pp4
+    @pe45 = Iqeo::Mesh::Edge.new @pp4, @pp5
+    @pe56 = Iqeo::Mesh::Edge.new @pp5, @pp6
+    @pe67 = Iqeo::Mesh::Edge.new @pp6, @pp7
+    @pe70 = Iqeo::Mesh::Edge.new @pp7, @pp0
+    @polygon_edges = [ @pe01, @pe12, @pe23, @pe34, @pe45, @pe56, @pe67, @pe70 ]
+    @polygon_directed_edges = @polygon_edges.collect { |e| Iqeo::Mesh::DirectedEdge.new e, e.points[0] }
+    # irregular polygon
+    @irregular_polygon_points = [ @pp0, @pp1, @pp3, @pp4, @pp6, @pp7 ]
+    @irregular_polygon_points_mixed = [ @pp0, @pp4, @pp7, @pp6, @pp3, @pp1 ]
+    @pe13 = Iqeo::Mesh::Edge.new @pp1, @pp3
+    @pe46 = Iqeo::Mesh::Edge.new @pp4, @pp6
+    @irregular_polygon_edges = [ @pe01, @pe13, @pe34, @pe46, @pe67, @pe70 ]
+    @irregular_polygon_directed_edges = @irregular_polygon_edges.collect { |e| Iqeo::Mesh::DirectedEdge.new e, e.points[0] }
   end
 
   context 'initialization' do
 
-    it 'accepts mesh and clockwise points' do
+    it 'accepts mesh and 3 clockwise points' do
       @triangles_clockwise.each do |points|
         poly = nil
         expect { poly = Iqeo::Mesh::Polygon.new @mesh, points }.to_not raise_error
@@ -91,7 +126,7 @@ describe 'Polygon' do
       end
     end
 
-    it 'accepts mesh and non-clockwise points' do
+    it 'accepts mesh and 3 non-clockwise points' do
       @triangles_anticlockwise.each do |points|
         poly = nil
         expect { poly = Iqeo::Mesh::Polygon.new @mesh, points }.to_not raise_error
@@ -103,7 +138,7 @@ describe 'Polygon' do
       end
     end
 
-    it 'accepts mesh and points with one at origin for special case circumcircle' do
+    it 'accepts mesh and 3 points with one at origin for special case circumcircle' do
       @triangles_at_origin.each do |points|
         poly = nil
         expect { poly = Iqeo::Mesh::Polygon.new @mesh, points }.to_not raise_error
@@ -112,8 +147,58 @@ describe 'Polygon' do
       end
     end
 
-    it 'raises exception for collinear points' do
-      expect { Iqeo::Mesh::Polygon.new @mesh, @collinear_points }.to raise_error
+    it 'accepts mesh and >3 clockwise points for a regular polygon' do
+      poly = nil
+      expect { poly = Iqeo::Mesh::Polygon.new @mesh, @polygon_points }.to_not raise_error
+      poly.points.should eq @polygon_points
+      poly.edges.should eq @polygon_edges
+      poly.directed_edges.should eq @polygon_directed_edges
+      poly.center.should eq @polygon_center
+      poly.radius2.to_i.should eq @polygon_radius2
+    end
+
+    it 'accepts mesh and >3 non-clockwise points for a regular polygon' do
+      poly = nil
+      expect { poly = Iqeo::Mesh::Polygon.new @mesh, @polygon_points_mixed }.to_not raise_error
+      poly.points.should eq @polygon_points
+      poly.edges.should eq @polygon_edges
+      poly.directed_edges.should eq @polygon_directed_edges
+      poly.center.should eq @polygon_center
+      poly.radius2.to_i.should eq @polygon_radius2
+    end
+
+    it 'accepts mesh and >3 clockwise points for an irregular polygon and does not calculate circumcircle' do
+      poly = nil
+      expect { poly = Iqeo::Mesh::Polygon.new @mesh, @irregular_polygon_points }.to_not raise_error
+      poly.points.should eq @irregular_polygon_points
+      poly.edges.should eq @irregular_polygon_edges
+      poly.directed_edges.should eq @irregular_polygon_directed_edges
+      poly.center.should be_nil
+      poly.radius2.should be_nil
+    end
+
+    it 'accepts mesh and >3 non-clockwise points for an irregular polygon and does not calculate circumcircle' do
+      poly = nil
+      expect { poly = Iqeo::Mesh::Polygon.new @mesh, @irregular_polygon_points_mixed }.to_not raise_error
+      poly.points.should eq @irregular_polygon_points
+      poly.edges.should eq @irregular_polygon_edges
+      poly.directed_edges.should eq @irregular_polygon_directed_edges
+      poly.center.should be_nil
+      poly.radius2.should be_nil
+    end
+
+    it 'raises exception for 3 collinear points' do
+      @collinear_points.each_cons(3) do |points_triplet|
+        expect { Iqeo::Mesh::Polygon.new @mesh, points_triplet }.to raise_error
+      end
+    end
+
+    it 'raises exception for >3 collinear points' do
+      4.upto(@collinear_points.size) do |width|
+        @collinear_points.each_cons(width) do |points_triplet|
+          expect { Iqeo::Mesh::Polygon.new @mesh, points_triplet }.to raise_error
+        end
+      end
     end
 
   end

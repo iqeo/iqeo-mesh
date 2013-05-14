@@ -13,6 +13,9 @@ class Voronoi
     @points = Set.new
   end
 
+
+
+
 end
 
 end

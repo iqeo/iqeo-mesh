@@ -195,7 +195,6 @@ class Mesh
   end
 
   def consistent?
-    # fix: .consistent? reads terribly specially in rspec ( .should be_consistent .. yuck! )- change to .consistent?
     ! consistency.values.include? false
   end
 

@@ -10,7 +10,7 @@ WIDTH = 1000
 HEIGHT = 1000
 XOFF = 1
 YOFF = 1
-DELAY = 0.1
+DELAY = 0.05
 POINT_RADIUS = 3
 CENTER_RADIUS = 3
 EDGE_WIDTH = 1
@@ -148,8 +148,6 @@ def mesh_listener message, *args
   ignore_events # prevent re-entry problems due to fast clicking
   @canvas.cursor = 'watch'
   @canvas.update
-  # fix: Mesh should maintain the voronoi graph of cells, centers, and borders !?
-  # fix: handle voronoi-related callbacks here
   case message
   when :point_added                              then point_added *args
   when :bowyerwatson_container                   then bowyerwatson_container *args
