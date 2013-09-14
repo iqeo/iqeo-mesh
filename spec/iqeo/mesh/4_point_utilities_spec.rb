@@ -51,10 +51,12 @@ describe 'PointUtilities' do
     @pp5 = Iqeo::Mesh::Point.new 180, 260
     @pp6 = Iqeo::Mesh::Point.new 160, 240
     @pp7 = Iqeo::Mesh::Point.new 160, 220
+    @barycenter_polygon_points = Iqeo::Mesh::Point.new 190, 230
     @polygon_points_clockwise = [ @pp0, @pp1, @pp2, @pp3, @pp4, @pp5, @pp6, @pp7 ]
     @polygon_points_mixed     = [ @pp1, @pp7, @pp3, @pp6, @pp5, @pp4, @pp0, @pp2 ]
     @polygon_points_anticlockwise = @polygon_points_clockwise.reverse
-    @barycenter_polygon_points = Iqeo::Mesh::Point.new 190, 230
+    @polygon_points_spiral_clockwise = [ @pp0, @pp2, @pp4, @pp6, @pp1, @pp3, @pp5, @pp7 ]
+    @polygon_points_spiral_anticlockwise = @polygon_points_spiral_clockwise.reverse
 
     # collinear points
     @pc11 = Iqeo::Mesh::Point.new 100,100
@@ -136,6 +138,38 @@ describe 'PointUtilities' do
     clockwise( @polygon_points_anticlockwise ).should eq @polygon_points_clockwise
   end
 
+  it 'orders random shuffles of >3 points clockwise' do
+    1000.times do 
+      clockwise( @polygon_points_clockwise.shuffle ).should eq @polygon_points_clockwise
+    end
+  end
+
+  it 'orders a range of point arrays clockwise' do
+    min = 1
+    limit = 6
+    point_arrays = ((min+1)..limit).collect do |max|
+      (min..max).collect do |x|
+        (min..max).collect do |y|
+          Iqeo::Mesh::Point.new(x*10,y*10) if ( [min,max].include?(x) || [min,max].include?(y) )
+        end.compact
+      end.flatten
+    end
+    point_arrays.each do |points|
+      sh_points = points.shuffle
+      cw_points = clockwise( sh_points )
+      puts "#{sh_points.inspect} => #{cw_points.inspect}"
+      clockwise?( cw_points ).should be_true
+    end
+  end
+
+  it 'orders clockwise spiral of >3 points to clockwise polygon' do
+    clockwise( @polygon_points_spiral_clockwise ).should eq @polygon_points_clockwise
+  end
+  
+  it 'orders anti-clockwise spiral of >3 points to clockwise polygon' do
+    clockwise( @polygon_points_spiral_anticlockwise ).should eq @polygon_points_clockwise
+  end
+  
   it 'indeterminately orders collinear points clockwise with top-left first' do
     @collinear_point_combos.keys.each do |points|
       clockwise( points ).first.should eq @collinear_points_top_left

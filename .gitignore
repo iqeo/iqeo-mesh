@@ -1,3 +1,4 @@
+*~
 *.gem
 *.rbc
 .bundle
@@ -16,4 +17,3 @@ test/tmp
 test/version_tmp
 tmp
 .idea/
-.rvmrc

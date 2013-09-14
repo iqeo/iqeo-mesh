@@ -36,7 +36,6 @@ class Edge
   end
 
   def collinear? point
-    #clockwise?( @points + [ point ] ).nil?
     cross_product( @points + [ point ] ) == 0 ? true : false
   end
 

@@ -153,7 +153,7 @@ class Polygon
     des = @directed_edges
     res[:directed_edges_okay] = ! des.detect { |de| ! de.consistent? }
     res[:directed_edges_enclose] = des[0].start == des[2].finish && des[1].start == des[0].finish && des[2].start == des[1].finish
-    # todo: directed_edges_clockwise , points_okay ?, points_consistent
+    # todo: directed_edges_clock-wise , points_okay ?, points_consistent
     res
   end
 
@@ -168,7 +168,7 @@ class Polygon
   private
 
   def directed_edges_for points
-    # assumes points are sorted clockwise - join points with edges
+    # assumes points are sorted clock-wise - join points with edges
     points.each_cons(2).collect do |p_start,p_finish|
       DirectedEdge.new @mesh.new_or_existing_edge( Edge.new( p_start, p_finish ) ), p_start
     end << DirectedEdge.new( @mesh.new_or_existing_edge( Edge.new( points.last, points.first ) ), points.last ) # edge for last to first point to close loop
