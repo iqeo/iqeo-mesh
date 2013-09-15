@@ -150,15 +150,13 @@ describe 'PointUtilities' do
     point_arrays = ((min+1)..limit).collect do |max|
       (min..max).collect do |x|
         (min..max).collect do |y|
-          Iqeo::Mesh::Point.new(x*10,y*10) #if ( [min,max].include?(x) || [min,max].include?(y) )
+          Iqeo::Mesh::Point.new(x*10,y*10) # if ( [min,max].include?(x) || [min,max].include?(y) )
         end.compact
       end.flatten
     end
     point_arrays.each do |points|
       sh_points = points.shuffle
-      print "#{sh_points.inspect} (#{barycenter sh_points}) => "
       cw_points = clockwise( sh_points )
-      puts "#{cw_points.inspect}"
       clockwise?( cw_points ).should be_true
     end
   end
