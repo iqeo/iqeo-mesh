@@ -3,14 +3,6 @@ module Mesh
 
 module PointUtilities
 
-=begin
-
-  we only clockwise sort in Polygon.new
-  ... using crossproduct to sort clockwise does not work for > 3 points (not a transitive sort function)
-  ... do we actually call Polygon.new with > 3 points ? - probably for the 'hole' polygon in bowyer-watson
-
-=end
-
   def clockwise points
     points = points.to_a
     center = barycenter points
@@ -20,19 +12,15 @@ module PointUtilities
     # ordered quadrants clockwise and sort points by slope to center
     cw_points = [ north_west, north_east, south_east, south_west ].collect do |quadrant|
       quadrant.sort_by do |point|
-        slope = ( center.y - point.y ).to_f / (center.x - point.x).to_f        # FIX: use LCM instead of FP division for integer slope comparison
+        if point == center
+          slope = 0
+        else
+          slope = ( center.y - point.y ).to_f / (center.x - point.x).to_f        # FIX: use LCM instead of FP division for integer slope comparison
+        end
       end
     end.flatten
     cw_points.rotate( cw_points.index( top_left cw_points ) )    # start with top-left point
   end
-
-  #def gen_points size = 4
-  #  (1..size).collect do |x|
-  #    (1..size).collect do |y|
-  #      Iqeo::Mesh::Point.new(x*10,y*10) if ( [1,size].include?(x) || [1,size].include?(y) )
-  #    end.compact
-  #  end.flatten
-  #end
 
   def sign n
     return 0 if n == 0
@@ -53,25 +41,17 @@ module PointUtilities
   def clockwise? points
     center = barycenter points
     cps = points.each_cons(2).collect do |point_pair|
-      cross_product( [ center ] + point_pair )
-    end
-    case
-    when cps.all? { |cp| cp >  0 } then true
-    when cps.all? { |cp| cp == 0 } then nil
-    else false
-    end
+      cross_product( [ center ] + point_pair ) unless point_pair.include? center
+    end.compact
+    cps.all? { |cp| cp >= 0 }  # including 0 allows multiple points with same slope
   end
 
   def anticlockwise? points
     center = barycenter points
     cps = points.each_cons(2).collect do |point_pair|
-      cross_product( [ center ] + point_pair )
-    end
-    case
-    when cps.all? { |cp| cp <  0 } then true
-    when cps.all? { |cp| cp == 0 } then nil
-    else false
-    end
+      cross_product( [ center ] + point_pair ) unless point_pair.include? center
+    end.compact
+    cps.all? { |cp| cp <= 0 }  # including 0 allows multiple points with same slope
   end
 
   def cross_product points

@@ -48,11 +48,21 @@ class DirectedEdge
   end
 
   def left? point
-    anticlockwise? [ @start, @finish, point ]
+    cp = cross_product [ @start, @finish, point ]
+    case
+    when cp <  0 then true
+    when cp == 0 then nil
+    else false
+    end
   end
 
   def right? point
-    clockwise? [ @start, @finish, point ]
+    cp = cross_product [ @start, @finish, point ]
+    case
+    when cp >  0 then true
+    when cp == 0 then nil
+    else false
+    end
   end
 
   def collinear? point

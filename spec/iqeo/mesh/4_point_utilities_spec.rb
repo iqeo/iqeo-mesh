@@ -19,21 +19,21 @@ describe 'PointUtilities' do
     @p5 = Iqeo::Mesh::Point.new 70, 80
 
     @triangle_point_combos = {
-      [ @p0, @p1, @p2 ] => { clockwise: true,  collinear: false, cross_product:  300 },
-      [ @p0, @p2, @p1 ] => { clockwise: false, collinear: false, cross_product: -300 },
-      [ @p1, @p0, @p2 ] => { clockwise: false, collinear: false, cross_product: -300 },
-      [ @p1, @p2, @p0 ] => { clockwise: true,  collinear: false, cross_product:  300 },
-      [ @p2, @p0, @p1 ] => { clockwise: true,  collinear: false, cross_product:  300 },
-      [ @p2, @p1, @p0 ] => { clockwise: false, collinear: false, cross_product: -300 }
+      [ @p0, @p1, @p2 ] => { clockwise: true,  anticlockwise: false, collinear: false, cross_product:  300 },
+      [ @p0, @p2, @p1 ] => { clockwise: false, anticlockwise: true,  collinear: false, cross_product: -300 },
+      [ @p1, @p0, @p2 ] => { clockwise: false, anticlockwise: true,  collinear: false, cross_product: -300 },
+      [ @p1, @p2, @p0 ] => { clockwise: true,  anticlockwise: false, collinear: false, cross_product:  300 },
+      [ @p2, @p0, @p1 ] => { clockwise: true,  anticlockwise: false, collinear: false, cross_product:  300 },
+      [ @p2, @p1, @p0 ] => { clockwise: false, anticlockwise: true,  collinear: false, cross_product: -300 }
     }
 
     @collinear_point_combos = {
-      [ @p3, @p4, @p5 ] => { clockwise: nil, collinear: true, cross_product: 0 },
-      [ @p3, @p5, @p4 ] => { clockwise: nil, collinear: true, cross_product: 0 },
-      [ @p4, @p3, @p5 ] => { clockwise: nil, collinear: true, cross_product: 0 },
-      [ @p4, @p5, @p3 ] => { clockwise: nil, collinear: true, cross_product: 0 },
-      [ @p5, @p3, @p4 ] => { clockwise: nil, collinear: true, cross_product: 0 },
-      [ @p5, @p4, @p3 ] => { clockwise: nil, collinear: true, cross_product: 0 }
+      [ @p3, @p4, @p5 ] => { clockwise: true, anticlockwise: true, collinear: true, cross_product: 0 },
+      [ @p3, @p5, @p4 ] => { clockwise: true, anticlockwise: true, collinear: true, cross_product: 0 },
+      [ @p4, @p3, @p5 ] => { clockwise: true, anticlockwise: true, collinear: true, cross_product: 0 },
+      [ @p4, @p5, @p3 ] => { clockwise: true, anticlockwise: true, collinear: true, cross_product: 0 },
+      [ @p5, @p3, @p4 ] => { clockwise: true, anticlockwise: true, collinear: true, cross_product: 0 },
+      [ @p5, @p4, @p3 ] => { clockwise: true, anticlockwise: true, collinear: true, cross_product: 0 }
     }
 
     @collinear_points_top_left = @p3
@@ -101,7 +101,7 @@ describe 'PointUtilities' do
 
   it 'tests 3 points are ordered anti-clockwise' do
     @all_3point_combos.each do |points,answer|
-      anticlockwise?( points ).should eq ( answer[:clockwise].nil? ? nil : ! answer[:clockwise] )
+      anticlockwise?( points ).should eq answer[:anticlockwise]
     end
   end
 
@@ -146,18 +146,19 @@ describe 'PointUtilities' do
 
   it 'orders a range of point arrays clockwise' do
     min = 1
-    limit = 6
+    limit = 10
     point_arrays = ((min+1)..limit).collect do |max|
       (min..max).collect do |x|
         (min..max).collect do |y|
-          Iqeo::Mesh::Point.new(x*10,y*10) if ( [min,max].include?(x) || [min,max].include?(y) )
+          Iqeo::Mesh::Point.new(x*10,y*10) #if ( [min,max].include?(x) || [min,max].include?(y) )
         end.compact
       end.flatten
     end
     point_arrays.each do |points|
       sh_points = points.shuffle
+      print "#{sh_points.inspect} (#{barycenter sh_points}) => "
       cw_points = clockwise( sh_points )
-      puts "#{sh_points.inspect} => #{cw_points.inspect}"
+      puts "#{cw_points.inspect}"
       clockwise?( cw_points ).should be_true
     end
   end
